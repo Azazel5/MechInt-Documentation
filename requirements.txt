@@ -1,0 +1,6 @@
+torch
+transformers
+transformer-lens
+jupyter
+matplotlib
+numpy
