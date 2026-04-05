@@ -53,3 +53,11 @@ One hypothetical answer for why it occurs is that superposition may allow the mo
 In biology, a circuit motif is a recurring pattern in complex graphs like transcription networks or biological neural networks. Motifs are helpful because understanding one motif can give researchers leverage on all graphs where it occurs.
 
 We think it’s quite likely that studying motifs will be important in understanding the circuits of artificial neural networks. In the long run, it may be more important than the study of individual circuits. At the same time, we expect investigations of motifs to be well served by us first building up a solid foundation of well understood circuits first.
+
+## Universality
+
+A Gabor filter is a linear bandpass filter used in image processing for edge detection, feature extraction, and texture analysis. And this is what the first layer of vision models learn. Ideally, one would like to characterize several features and then rigorously demonstrate that those features — and not just correlated ones — are forming across many models
+
+These results have led us to suspect that the universality hypothesis is likely true, but further work will be needed to understand if the apparent universality of some low-level vision features is the exception or the rule.
+
+One particularly exciting possibility might be if artificial neural networks could predict features which were previously unknown but could then be found in biology. (Some neuroscientists we have spoken to have suggested that high-low frequency detectors might be a candidate for this.) If such a prediction could be made, it would be extremely strong evidence for the universality hypothesis.

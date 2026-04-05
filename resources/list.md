@@ -34,4 +34,7 @@ Even though this is a nascent field, there is a lot out there already. In this s
 | ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness | https://arxiv.org/pdf/1811.12231 | New |
 | Approximating CNNs with Bag-of-local-Features models works surprisingly well on ImageNet | https://arxiv.org/pdf/1904.00760 | New |
 | Adversarial Examples Are Not Bugs, They Are Features | https://arxiv.org/pdf/1905.02175 | New |
-| On the importance of single directions for generalization | https://arxiv.org/pdf/1803.06959 | New
+| On the importance of single directions for generalization | https://arxiv.org/pdf/1803.06959 | New |
+The structure of scientific revolutions | https://www.bibliovault.org/BV.landing.epl?ISBN=9780226458106 | New
+Convergent Learning: do neural networks learn the same things? | https://arxiv.org/pdf/1511.07543 | New
+SVCCA: Singular Vector Canonical Correlation Analysis for Deep Learning Dynamics and Interpretability | https://proceedings.neurips.cc/paper_files/paper/2017/file/dc6a7e655d7e5840e66733e9ee67cc69-Paper.pdf | New
