@@ -7,7 +7,11 @@ Even though this is a nascent field, there is a lot out there already. In this s
 
 | Resource Name | Link | Status |
 |--------------|------|--------|
-| Zoom In: An Introduction to Circuits | https://distill.pub/2020/circuits/zoom-in/ | Processing |
+| Zoom In: An Introduction to Circuits | https://distill.pub/2020/circuits/zoom-in/ | Completed |
+| Fine-tuning Enhances Existing Mechanisms: A Case Study On Entity Tracking | https://arxiv.org/pdf/2402.14811 | Processing |
+| Entity Tracking in Language Models | https://arxiv.org/pdf/2305.02363 | New |
+| Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | New |
+| Discovering Variable Binding Circuitry with Desiderata | https://arxiv.org/pdf/2307.03637 | New |
 | Visualizing and understanding RNNs | https://arxiv.org/pdf/1506.02078 | New |
 | Visualizing Higher-Layer Features of a Deep Network | resources/papers/visualization_techreport.pdf | New |
 | Feature Visualization | https://distill.pub/2017feature-visualization/ | New |
