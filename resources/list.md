@@ -7,6 +7,10 @@ Even though this is a nascent field, there is a lot out there already. This page
 - [`topics/activation_patching/`](../topics/activation_patching/) — notes: [`topics/activation_patching/notes.md`](../topics/activation_patching/notes.md)
 - [`topics/alignment/`](../topics/alignment/) — notes: [`topics/alignment/notes.md`](../topics/alignment/notes.md)
 - [`topics/circuit_discovery/`](../topics/circuit_discovery/) — notes: [`topics/circuit_discovery/notes.md`](../topics/circuit_discovery/notes.md)
+- [`topics/persona_and_steering/`](../topics/persona_and_steering/) — notes: [`topics/persona_and_steering/notes.md`](../topics/persona_and_steering/notes.md)
+- [`topics/deception_and_goal_guarding/`](../topics/deception_and_goal_guarding/) — notes: [`topics/deception_and_goal_guarding/notes.md`](../topics/deception_and_goal_guarding/notes.md)
+- [`topics/elicitation/`](../topics/elicitation/) — notes: [`topics/elicitation/notes.md`](../topics/elicitation/notes.md)
+- [`topics/training_data_and_distillation/`](../topics/training_data_and_distillation/) — notes: [`topics/training_data_and_distillation/notes.md`](../topics/training_data_and_distillation/notes.md)
 
 **Suggested per-topic layout (inside each topic folder)**
 
@@ -33,6 +37,30 @@ Even though this is a nascent field, there is a lot out there already. This page
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
 | _Add resources here_ |  |  |  | [`topics/alignment/notes.md`](../topics/alignment/notes.md) |
+
+### Persona and steering
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Persona Vectors: Monitoring and Controlling Character Traits in Language Models | https://arxiv.org/abs/2507.21509 | New | alignment, steering, monitoring, representation | [`topics/persona_and_steering/notes.md`](../topics/persona_and_steering/notes.md) |
+
+### Deception and goal-guarding
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Why Do Some Language Models Fake Alignment While Others Don't? | https://arxiv.org/abs/2506.18032 | New | alignment, deception, evals, training-vs-deployment | [`topics/deception_and_goal_guarding/notes.md`](../topics/deception_and_goal_guarding/notes.md) |
+
+### Elicitation
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Quantifying Elicitation of Latent Capabilities in Language Models | https://openreview.net/forum?id=Dkgx2pS4Ww | New | elicitation, fine-tuning, measurement, scaling | [`topics/elicitation/notes.md`](../topics/elicitation/notes.md) |
+
+### Training data and distillation
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Subliminal Learning: Language models transmit behavioral traits via hidden signals in data | https://arxiv.org/abs/2507.14805 | New | distillation, synthetic-data, training-dynamics, alignment | [`topics/training_data_and_distillation/notes.md`](../topics/training_data_and_distillation/notes.md) |
 
 ### Circuit discovery
 
