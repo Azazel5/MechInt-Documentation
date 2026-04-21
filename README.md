@@ -1,92 +1,67 @@
-# MechInt-Documentation: Mastering Mechanistic Interpretability Through Action
+# ScorpionLabs Core
 
-Welcome to **MechInt-Documentation**, your gateway to understanding and applying **Mechanistic Interpretability (MechInt)** – the art and science of reverse-engineering neural networks to uncover how they think, reason, and make decisions.
+ScorpionLabs Core is the execution framework for a long-horizon AI research campaign.
 
-## What is MechInt?
+## Mission
 
-Mechanistic Interpretability is a cutting-edge field that goes beyond traditional AI evaluation. Instead of just measuring performance, MechInt dives deep into the "why" behind AI behavior. By analyzing the internal mechanisms of models like Large Language Models (LLMs), Convolutional Neural Networks (CNNs), and other architectures, we can:
+"A 2,000-hour execution roadmap bridging theoretical Mechanistic Interpretability with Bare-Metal ML Systems Engineering."
 
-- Understand how models process information
-- Identify and mitigate biases or unsafe behaviors
-- Build more transparent and trustworthy AI systems
-- Unlock new capabilities through targeted interventions
+## Operating Doctrine
 
-This repository isn't just about reading papers – it's about **doing**. I will distill complex research into actionable, executable code, ensuring that theory meets practice immediately.
+"Every topic contains a notes.md living document and an experiments/ pipeline. We do not just read papers; we replicate them, hit hardware bottlenecks, and engineer systems to bypass them."
 
-## The Mission
+This repository is not a passive reading list. It is a research command center designed to convert theory into reproducible artifacts, systems insight, and measurable capability.
 
-This repo serves as a comprehensive, data-driven resource for learning MechInt in an execution-oriented way. Whether you're a beginner exploring the field or an expert running advanced experiments, you'll find:
+## Three-Pillar Architecture
 
-- **Structured Knowledge**: Organized by topics with notes, code, and experiments
-- **Hands-On Implementations**: Quick iterations from theory to working code
-- **Real-World Applications**: Insights that fuel ongoing projects and research
+1. Mechanistic Interpretability
+- Path: [topics/mech_int](topics/mech_int)
+- Focus: Causal model understanding, circuit-level analysis, alignment-adjacent interpretability.
 
-## Fueling Big Experiments
+2. ML Systems (Bare-Metal)
+- Path: [topics/mlsys](topics/mlsys)
+- Focus: Memory systems, distributed training, hardware-aware kernels, and throughput-critical engineering.
 
-This repository directly informs and supports two major MechInt experiments I'm currently running:
+3. Historical / Foundational AI
+- Path: [topics/historical_ai](topics/historical_ai)
+- Focus: Foundational transformers, early reinforcement learning, and historical research lineages that still shape modern systems.
 
-### BizzaroWorld
-An exploration of counterfactual reasoning in LLMs – what happens when we flip the script on model behaviors? This project uses MechInt techniques to understand and manipulate how models handle "what if" scenarios.
+## Workflow Standard
 
-### Greatness Analyzed
-A deep dive into what makes someone or something "great". The analysis of excellence. Analyzing the circuits and mechanisms behind exceptional performance in specific domains. We're breaking down genius-level capabilities into replicable components.
+For every topic folder in [topics](topics):
+- notes.md is the canonical living record for ideas, papers, failures, and decisions.
+- experiments/replications/ contains faithful reproductions of core results.
+- experiments/innovations/ contains extensions, optimizations, and original experiments.
 
-Both projects rely on the foundations built here, turning MechInt insights into powerful, practical tools.
+Resources are indexed in [resources/list.md](resources/list.md) and must always link back to the corresponding topic notes file.
 
-## Repository Structure
+## Repository Map
 
-- `topics/` - Core MechInt concepts organized by technique (e.g., `activation_patching/`, `circuit_discovery/`)
-  - `notes.md` - In-depth explanations and key takeaways
-  - `code/` - Reusable implementations and utilities
-  - `experiments/` - Specific experiments and results
-- `src/` - Shared MechInt libraries and helper functions
-- `notebooks/` - Jupyter notebooks for interactive exploration
-- `resources/` - Curated papers, articles, tutorials, and reference materials
-- `docs/` - Additional documentation, glossaries, and setup guides
+- [topics](topics): Core research execution by pillar and topic.
+- [resources](resources): Curated paper index and artifact links.
+- [notebooks](notebooks): Interactive exploration and rapid validation.
+- [src](src): Shared code, reusable utilities, and core components.
+- [docs](docs): Supporting documentation.
 
-## Getting Started
+## Execution Expectations
 
-### Prerequisites
-- Python 3.8+
-- Basic understanding of neural networks and PyTorch
+- Build from first principles, but ship artifacts.
+- Prioritize reproducibility over novelty theater.
+- Track constraints, especially compute and memory bottlenecks.
+- Turn every bottleneck into a systems design problem.
+- Keep the research loop tight: read, replicate, stress, optimize, document.
 
-### Installation
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Quick Start
 
-### Learning Path
-1. **Start with Topics**: Begin in `topics/` – each directory is self-contained with theory and code
-2. **Run Experiments**: Dive into `experiments/` subdirectories to see MechInt in action
-3. **Explore Notebooks**: Use `notebooks/` for interactive learning and prototyping
-4. **Contribute Back**: Add your findings, improvements, or new topics
+1. Install dependencies.
 
-### Quick Example
-Want to see MechInt in action? Check out the activation patching experiments – we'll show you how to surgically modify model behaviors with just a few lines of code.
+```bash
+pip install -r requirements.txt
+```
 
-## Contributing
+2. Pick a pillar and one topic.
+3. Read that topic's notes.md and select one resource from [resources/list.md](resources/list.md).
+4. Replicate in experiments/replications/.
+5. Push one improvement in experiments/innovations/ and document outcomes in notes.md.
 
-This is an open, collaborative space for MechInt enthusiasts. Ways to contribute:
-
-- **Add New Topics**: Implement a new MechInt technique with notes and code
-- **Improve Experiments**: Enhance existing implementations or add new ones
-- **Share Resources**: Contribute papers, blogs, or tools to `resources/`
-- **Report Issues**: Found a bug or have suggestions? Open an issue!
-
-## Why This Matters
-
-In an era where AI systems are becoming increasingly complex and influential, understanding their inner workings isn't just academic – it's essential. MechInt provides the tools to:
-
-- **Democratize AI Understanding**: Make advanced AI concepts accessible through code
-- **Accelerate Research**: Build on existing work with ready-to-use implementations
-- **Foster Innovation**: Enable new discoveries by providing a solid foundation
-
-## Connect & Collaborate
-
-This repository is hosted on my personal GitHub – follow along for updates, star it if it helps your MechInt journey, and let's build the future of interpretable AI together!
-
----
-
-*Built for the MechInt community. Theory without execution is just philosophy – let's make AI understandable, one experiment at a time.*
+ScorpionLabs Core exists to produce clear thinking, hard evidence, and engineered results.
