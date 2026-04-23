@@ -40,6 +40,7 @@
 | Superintelligent Agents Pose Catastrophic Risks: Can Scientist AI Offer a Safer Path? | https://arxiv.org/abs/2502.15657 | New | alignment, risk, governance | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Claude Sonnet 4.5 System Card | https://www.anthropic.com/claude-sonnet-4-5-system-card | New | anthropic, system-card, evals | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Claude Opus 4.5 System Card | https://www.anthropic.com/claude-opus-4-5-system-card | New | anthropic, system-card, evals | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
+| Gemini 3 Pro FSF Report | https://storage.googleapis.com/deepmind-media/gemini/gemini_3_pro_fsf_report.pdf | New | gemini, safety, evals, report | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Building and evaluating alignment auditing agents | https://alignment.anthropic.com/2025/automated-auditing/ | New | auditing, agents, alignment | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Downstream applications as validation of interpretability progress | https://www.lesswrong.com/posts/wGRnzCFcowRCrpX4Y/downstream-applications-as-validation-of-interpretability | New | lesswrong, interpretability, validation | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | The Engineer’s Interpretability Sequence (EIS) I: Intro | https://www.lesswrong.com/posts/ExRN5Bu3696cf9Ccm/the-engineer-s-interpretability-sequence-eis-i-intro | New | lesswrong, critique, interpretability | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
@@ -95,6 +96,9 @@
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
+| Claude Sonnet 4.5 System Card (PDF) | https://assets.anthropic.com/m/12f214efcc2f457a/original/Claude-Sonnet-4-5-System-Card.pdf | New | anthropic, system-card, pdf |  |
+| Claude Opus 4.5 System Card (PDF) | https://assets.anthropic.com/m/64823ba7485345a7/Claude-Opus-4-5-System-Card.pdf | New | anthropic, system-card, pdf |  |
+| Gemini 3 Pro FSF Report (PDF) | https://storage.googleapis.com/deepmind-media/gemini/gemini_3_pro_fsf_report.pdf | New | gemini, safety, evals, report, pdf |  |
 
 ## 2. ML Systems (Bare-Metal)
 
