@@ -9,6 +9,18 @@
 | Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking | https://arxiv.org/pdf/2402.14811 | In Progress | activation-patching, fine-tuning, entity-tracking | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 | Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | New | activation-patching, circuits | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 
+### ARENA (hands-on curriculum)
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| ARENA Chapter 1 hub — Transformer Interpretability | https://learn.arena.education/chapter1_transformer_interp/ | New | arena, curriculum, mech-interp | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| ARENA 1.4.1 — Indirect Object Identification (IOI) | https://learn.arena.education/chapter1_transformer_interp/21_ioi/intro/ | New | arena, ioi, activation-patching, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small (Wang et al., 2022) | https://arxiv.org/abs/2211.00593 | New | ioi, circuits, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| ARENA 1.3.3 — Interpretability with SAEs | https://learn.arena.education/chapter1_transformer_interp/13_saes/ | New | arena, sae, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| Sparse Autoencoders Find Highly Interpretable Features in Language Models (Cunningham et al., 2023) | https://arxiv.org/abs/2309.08600 | New | sae, superposition, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| ARENA 1.4.2 — SAE Circuits | https://learn.arena.education/chapter1_transformer_interp/22_sae_circuits/ | New | arena, sae, circuits | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| Towards Automated Circuit Discovery for Mechanistic Interpretability (Conmy et al., 2023; ACDC) | https://arxiv.org/abs/2304.14997 | New | circuits, automation, acdc | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+
 ### Circuit Discovery
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
