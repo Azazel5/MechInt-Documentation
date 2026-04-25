@@ -1,9 +1,12 @@
+**Status** values in the tables below use three categories: **New** (not started or barely skimmed), **In Progress** (actively reading or digesting), and **Completed** (read and integrated or explicitly marked done). Use them to see what is queued versus underway versus finished.
+
 ## 1. Mechanistic Interpretability
 
 ### Activation Patching
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
+| Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking | https://arxiv.org/pdf/2402.14811 | In Progress | activation-patching, fine-tuning, entity-tracking | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 | Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | New | activation-patching, circuits | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 
 ### Circuit Discovery
