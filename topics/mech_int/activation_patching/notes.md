@@ -315,6 +315,14 @@ What all of this suggests is that the effectiveness of fine-tuning — and by ex
 
 Future work may study the training dynamics during the fine-tuning process, to pinpoint exactly when and how the circuit enhancement occurs.
 
+## Appendices
+
+What exactly is Attention Knockout doing?  Attention knockout blocks that flow deliberately. It sets the attention weight from position A to position B to zero — forcing the head to ignore position B completely. The model can't read from that position anymore.
+
+The question it asks: if I prevent the final token from attending to the entity token at layer L, does performance drop? If yes, that layer's attention from final to entity was carrying crucial information. 
+
+Lots of implementation details and definition of desideratas. Got to read bits again.
+
 ## Next steps for experimentation
 
 Theory exists to serve implementation, so let's use this paper as the springboard that connects my earlier reading (Zoom In) with these techniques, which will be replicated on BizzoWorld as well. 
@@ -337,13 +345,10 @@ Where to go after reading these:
     Compare which components activate for the same task in different model versions
     This directly follows from the patching work in Zoom In
 
-4. Because they did not mention by what degree the patching from fine-tuned model to the original, base model improves entity-tracking, find out! Replacate everything with LLaMa 7B
 
-If we can understand why a model works, we can predict how it will change and even transplant mechanisms between models.
+4. Try an ablation study by updating only the A_ A_q, B_q, A_v, B_v first and then include the value projection and output projection matrices for A and B too. Does this result in any meaningful findings? Will this introduction make a big difference or no, and by what margin? We could do the same for the MLP layer too, W_up and W_down.
 
-5. Try an ablation study by updating only the A_ A_q, B_q, A_v, B_v first and then include the value projection and output projection matrices for A and B too. Does this result in any meaningful findings? Will this introduction make a big difference or no, and by what margin? We could do the same for the MLP layer too, W_up and W_down.
-
-6. Use path patching on Bizzaro World. What you've established that path patching can now sharpen
+5. Use path patching on Bizzaro World to sharpen what we've already done
 
 From my experiments, I know:
 
