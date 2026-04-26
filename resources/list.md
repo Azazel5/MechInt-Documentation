@@ -6,7 +6,7 @@
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
-| Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking | https://arxiv.org/pdf/2402.14811 | In Progress | activation-patching, fine-tuning, entity-tracking | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
+| Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking | https://arxiv.org/pdf/2402.14811 | **Completed** | activation-patching, fine-tuning, entity-tracking | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 | Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | New | activation-patching, circuits | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 
 ### ARENA (hands-on curriculum)
@@ -14,7 +14,7 @@
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
 | ARENA Chapter 1 hub — Transformer Interpretability | https://learn.arena.education/chapter1_transformer_interp/ | New | arena, curriculum, mech-interp | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
-| ARENA 1.4.1 — Indirect Object Identification (IOI) | https://learn.arena.education/chapter1_transformer_interp/21_ioi/intro/ | New | arena, ioi, activation-patching, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| ARENA 1.4.1 — Indirect Object Identification (IOI) | https://learn.arena.education/chapter1_transformer_interp/21_ioi/intro/ | **In Progress** | arena, ioi, activation-patching, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small (Wang et al., 2022) | https://arxiv.org/abs/2211.00593 | New | ioi, circuits, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | ARENA 1.3.3 — Interpretability with SAEs | https://learn.arena.education/chapter1_transformer_interp/13_saes/ | New | arena, sae, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | Sparse Autoencoders Find Highly Interpretable Features in Language Models (Cunningham et al., 2023) | https://arxiv.org/abs/2309.08600 | New | sae, superposition, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
@@ -25,6 +25,7 @@
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
+| A Mathematical Framework for Transformer Circuits | https://transformer-circuits.pub/2021/framework/index.html | New | circuits, transformers, framework | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Zoom In: An Introduction to Circuits | https://distill.pub/2020/circuits/zoom-in/ | Completed | circuits, tutorial | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Curve Detectors | https://distill.pub/2020/circuits/curve-detectors/ | New | circuits | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Thread: Circuits | https://distill.pub/2020/circuits/ | New | circuits | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
