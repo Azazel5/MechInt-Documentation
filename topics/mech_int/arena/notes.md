@@ -140,3 +140,7 @@ You literally plot the 8×8 or 18×8 attention matrices and look at the attentio
 Induction heads don't form for one layer transformers because of this sequential thing that attention heads do. If two things are in the same layer, they execute simultaneously and one thing cannot be conditional on the other
 
 IOI = Indirect Object Identification. And yes — the IOI chapter is where path patching lives.
+
+## Setup for experimentation
+
+Area has two components. Instructions and exercises. I have cloned the repo to my Colab Drive space, and will be referring to that always. My workflow is: read the instructions chapter on learn.arena.education, and then do the associated exercises with the GPU inside the exercises directory, which is already an ipynb file, so it is nicely put together! 
