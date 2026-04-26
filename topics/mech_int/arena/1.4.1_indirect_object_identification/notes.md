@@ -39,7 +39,7 @@ In the paper they rigorously reverse engineer a 26 head circuit, with 7 separate
 
 A video walkthrough of the paper by Neel Nanda with Wang -
 
-[Part 1](https://www.youtube.com/watch?v=gzwj0jWbvbo)
+[Part 1](https://www.youtube.com/watch?v=gzwj0jWbvbo) and
 [Part 2](https://www.youtube.com/watch?v=b9xfYBKIaX4)
 
 The tasks were chosen this way because they're common grammatical structures that earlier layers learn, easy to measure, and it's a well defined task. 
@@ -55,17 +55,14 @@ And finally, we'll do full replication too, by recovering the minimum circuitry 
 
 ## Architecture
 
-GPT2-small is a 12 layer, 80M parameter model.
+GPT2-small is a 12 layer, 80M parameter model. 12 attention heads per block and d_model hidden dimension = 768, so each head gets 64 dimensions
 
 What are the parameters in the model loading functions?
 
 HookedTransformer.from_pretrained()
 
-center_unembed=
-center_writing_weights=
-fold_ln=
 
-refactor_factored_attn_matrices=redefining w_q, w_k, w_o, w_v in the model without changing model behavior
+**refactor_factored_attn_matrices**=redefining w_q, w_k, w_o, w_v in the model without changing model behavior
 
 We know that the only matrix computation occurring within is $W_QW_k^T$. And then we do the singular value decomposition, as a reminder, this is a fundamental matrix factorization technique in linear algebra that decomposes any $m x n$ matrix 
 into three specific matrices: $W_QW_k^T = U\Sigma V^T$
@@ -89,6 +86,92 @@ It doesn't mean all columns have the same norm as each other — just that the p
 
 ![Figure 2](images/figure-2.png)
 
+What this all means is WQ and WK are structured so their columns are orthogonal to each other and norm-matched across the two matrices. This is not random — it's a learned structure that makes the attention computation clean and interpretable. The model has essentially learned to use each column as an independent "direction" in representation space with no cross-contamination between directions.
 
-### Exercises / Experimentation log
+In a similar way, since $W_{ov} = w_o w_v = U \Sigma V^T$, we can define $w_o = V^T$ and $w_v = U \Sigma$, slightly different to the above equation because: 
 
+For QK: The attention score computation is a dot product between two projected vectors. The transpose appears naturally because you're measuring similarity between a query and a key, which requires one of them to be transposed to make the matrix multiplication work out dimensionally. 
+
+For OV: The value-output computation is the application of two transformations sequentially to the same vector, just passing it through. There's no dot product, no similarity measurement, no transpose needed. You're just composing two linear maps. So $w_v w_o$ decomposes cleanly without a transpose.
+
+QK is about comparison — query meets key, and comparison requires a transpose to align dimensions for the dot product.
+
+OV is about transformation — value gets projected, then output projects it again. Pure sequential transformation, no comparison, no transpose.So, $W_{ov}$ is a pure rotation. 
+
+```
+utils.test_prompt(example_prompt, example_answer, model, prepend_bos=True)
+```
+
+is a useful function to test prompts with specific models and tokenizers! 
+
+**Useful** -> We can prepend the beginning 
+of sentence (BOS) because of tokenizer anomalies which I saw while experimenting with BizzaroWorld.
+
+## Tokenization
+
+Different names will be different numbers of tokens, different prompts will have the relevant tokens at different positions, different prompts will have different total numbers of tokens, etc. 
+
+Language models often devote significant amounts of parameters in early layers to convert inputs from tokens to a more sensible internal format (and do the reverse in later layers). 
+
+You really, really want to avoid needing to think about tokenization wherever possible when doing exploratory analysis (though, of course, it's relevant later when trying to flesh out your analysis and make it rigorous!). 
+
+HookedTransformer comes with several helper methods to deal with tokens: **to_tokens, to_string, *to_str_tokens*, to_single_token, get_token_position**
+
+> The outputs in this exercise were created by rich, a fun library which prints things in nice formats. It has functions like rich.table.Table, which are very easy to use but can produce visually clear outputs which are sometimes useful.
+
+You can also color the columns of a table, by using the rich.table.Column argument with the style parameter. 
+
+Anytime you do anything with TransformerLens, always use **run_with_cache**, so you can reuse the cahced internal activations later down the line. 
+
+Our metric here will be the logit difference, the difference in logit between the indirect object's name and the subject's name (eg, logit(Mary) - logit(John)).
+
+- Exercise: Spend some time thinking through how you might imagine this behaviour being implemented in a transformer. Try to think through this for yourself before reading through my thoughts!
+
+Not sure... At a really high level, we have a bunch of prompts and we're measuring logit differences on how well the entity is being tracked here, which it is doing very well. 
+
+As the tokens pass through the transformer, it goes through parallel heads in all 12 transformer blocks and 768 d_model so each attention head gets 64 dimensions. So per layers, all 12 blocks work in parallel, constrained by what happens layer wise. 
+
+After attention is the MLP layer which the outputs of the attention heads are packed into W_O, concatenated and sent into the MLP. 
+
+Somehow, someway, the model learns to recognize the entities. That's all I have so far.
+
+### At a lower level
+
+Think about what attention heads are good at — they move information from one token position to another. So the circuit probably needs at minimum:
+
+A duplicate token head — somewhere early, a head learns to identify when the same name appears twice. It attends from the second occurrence of a name back to the first, flagging "I've seen this before."
+
+An induction-style head — tracks the pattern of who did what to whom. Attends from the current position back to relevant subject positions.
+
+An inhibition head — suppresses the name that was the subject of the previous clause. This is the key move — it's not just finding the right answer, it's actively penalizing the wrong one.
+
+The model doesn't need to "understand" the sentence. It just needs to learn a set of attention patterns that implement the right information routing. The logit difference we're measuring is the end result of that routing — information about the indirect object getting amplified at the final position, information about the subject getting suppressed.
+
+### Callum's Explanation
+
+Prompt example: "When John and Mary went to the shops, John gave the bag to" -> " Mary".
+
+Attention is really good at the primitive operations of looking nearby, or copying information. I can believe a tiny model could figure out that, at "to", it should look for names and predict that those names came next (e.g. the skip trigram " John...to -> John"). 
+
+But it's much harder to tell how many of each previous name there are - attending to each copy of John will look exactly the same as attending to a single John token. So this will be pretty hard to figure out on the " to" token!
+
+The natural place to break this symmetry is on the second " John" token - telling whether there is an earlier copy of the current token should be a much easier task. So I might expect there to be a head which detects duplicate tokens on the second " John" token, and then another head which moves that information from the second " John token to the " to" token.
+
+The model then needs to learn to predict " Mary" and not " John". I can see two natural ways to do this:
+
+1. Detect all preceding names and move this information to " to" and then delete the any name corresponding to the duplicate token feature. This feels easier done with a non-linearity, since precisely cancelling out vectors is hard, so I'd imagine an MLP layer deletes the " John" direction of the residual stream.
+
+2. Have a head which attends to all previous names, but where the duplicate token features inhibit it from attending to specific names. So this only attends to Mary. And then the output of this head maps to the logits.
+
+From these hypotheses, the second one is correct. A test that could distinguish these two is to look at which components of the model add directly to the logits - if it's mostly attention heads which attend to " Mary" and to neither " John" it's probably hypothesis 2, if it's mostly MLPs it's probably hypothesis 1.
+
+> TLDR ~ if the heads are specifically routing Mary's information to the final position while ignoring John, that supports hypothesis 2 — the model is directly promoting the indirect object.
+
+## Logit Attribution
+
+
+
+
+### Experimentation log
+
+- torch.gather() lets you index into d_vocab using your answer token indices, pulling out exactly the two logit values you care about per batch item without looping.
