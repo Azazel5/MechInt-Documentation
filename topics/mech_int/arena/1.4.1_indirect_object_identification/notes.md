@@ -248,7 +248,7 @@ That second part with $u_{IO}$ and $u_S is a bit of a jump but this is how it wo
 
 W_U has shape [d_model, d_vocab]. So xᵀ W_U gives you a vector of length d_vocab — one logit per vocabulary token. 
 
-When you index into that result with _IO, you're selecting one specific element. That element is the dot product of x with one specific column of W_U. Specifically the column corresponding to the IO token.
+When you index into that result with $u_{IO}$, you're selecting one specific element. That element is the dot product of x with one specific column of W_U. Specifically the column corresponding to the IO token.
 
 $(xᵀ W_U)_{IO} = x^Tu_{io} $
 
@@ -262,10 +262,66 @@ To be clear, W_U, the unembedding matrix, is learned during training, just like 
 
 And here's the cool part. Those values we just derived? It's callled the logit difference direction
 
-$u_{io} - u_s $
+residual/unembedding directions  -> $u_{io} - u_s $
 
 In the field, the word projection is used, which means dot products of this kind. 
+
+
+All of this so far calculates logit difference at the final token position. But we want to know more. What about the intermediate values? 
+
+Now instead of only measuring logit difference at the output, we can start measuring how much any intermediate residual stream vector is pointing in the logit difference direction. You can ask at layer 3, layer 7, layer 12 — how aligned is the residual stream with this direction? This lets you decompose which components (which attention heads, which MLPs) are contributing to the final answer throughout the forward pass.
+
+**tokens_to_residual_directions()** -> this maps token indices to their corresponding unembedding matrix rows — essentially looking up u_IO and u_S. Then subtracting gives you the direction in d_model space that separates the two answers.
+
+The key difference between this attribution and the previous logit calculation: Same quantity, different representation. Before it was a scalar at the end. Now it's a direction you can probe anywhere in the network.
  
+Since we mathematically dervied it, I'd be confident here, but the LayerNorm factors make things murkier. LayerNorm is a non-linear operation, so you can't perfectly decompose it into a simple dot product without some approximation. 
+
+> logits = Unembed(LayerNorm(residual_stream))
+
+## [Logit Lens](https://www.alignmentforum.org/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens)
+
+![Logit difference from accumulated residual stream](images/logit-lens-residual-stream.png)
+
+
+With minimal manual code, we have formulated this diagram. 
+
+The function of note is **accumulated_resid()**
+
+> Question - what is the interpretation of this plot? What does this tell you about how the model solves this task?
+
+Clearly, 9_pre, starting layer 9, the model starts making important decisions regarding the prompt. It is negiligible in the beginning, but it starts making a big difference around there. Then we see a high, but jagged curve in the further layers, some meaningful some not. But that layer 9 is something to zoom in on, pun intended.
+
+At layer 9, we have a massive spike — the residual stream suddenly aligns strongly with the logit difference direction.
+
+Some component, the attention or MLP sublayers - we don't know yet - is writing strongly in the $u_{IO}$ - $u_S$ direction
+
+**NOTE -** The spike at 9 is dramatic but the story starts at 7. The model doesn't jump from zero to 5 instantaneously — there's a buildup across 7, 8, and 9 that suggests a coordinated sequence of computation across those layers, not a single head doing all the work at layer 9.
+
+The "handoff" isn't a single moment, it's a 3-layer process here. Layer 7 starts building signal, 8 continues, 9 completes it. That's a more nuanced and accurate characterization than "layer 9 is where it happens."
+
+Don't just find the peak, understand the ramp.
+
+## Layer Attribution
+
+Attention layer = move information around 
+
+MLP layer = to process information
+
+![](2026-04-27-00-26-18.png)
+
+> Question - what is the interpretation of this plot? What does this tell you about how the model solves this task?
+
+The layer 9 attention head is doing something significant because we can see a jump and a subsequent fall. The other layers make it worse, which is also a signal, although the magnitudes are smaller. 
+
+Remember that a negative contribution is just as informative as a positive one — it means that component is actively pushing the residual stream away from the correct answer. That's not noise, that's a component doing something systematic and potentially important. Some heads are negative movers; they suppress information.
+
+## Head Attribution
+
+Now we can look at those attention heads specifically too. 
+
+There are negative heads too, ones which push the incorrect answer logit up. So, that is strange. Also something to zoom into for sure! Things like that could be potentially more informative. 
+
 
 
 ### Experimentation log
