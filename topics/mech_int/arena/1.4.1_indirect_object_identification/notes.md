@@ -169,7 +169,103 @@ From these hypotheses, the second one is correct. A test that could distinguish 
 
 ## Logit Attribution
 
+Logit difference and attribution is a great way to work within interpretability because the computations in a transformer can be broken into individual contributions by specific parts. The logits of a model are logits=Unembed(LayerNorm(final_residual_stream)). The Unembed is a linear map, and LayerNorm is approximately a linear map, so we can decompose the logits into the sum of the contributions of each component, and look at which components contribute the most to the logit of the correct token! This is called direct logit attribution. 
 
+Two ways to analyze model outputs i.e. through logits or output log probabilities. As a reminder, the LLM training process is an inherently classification problem with a softmax at the end. It's doing next word prediction over and over again, over the entire vocabulary. So, the loss function used it cross entropy loss. 
+
+This is the elegant math which showcases why logits are a good metric to use! 
+
+log_probs == logits.log_softmax(dim=-1) == logits - logsumexp(logits)
+
+Why is this? Let's revist some ML. For the vector at position i,
+
+- softmax(z)_i = $\frac{exp(z_i)}{\Sigma_j exp(z_j)}$
+
+So softmax(z)_i answers: what fraction of the total exponential mass belongs to position i?
+
+- Take the log of that
+$log(softmax(z)_i) = log(exp(z_i) - log(\Sigma_j exp(z_j))$
+
+- Log and exp cancel: 
+
+$log(softmax(z)_i) = z_i - log(\Sigma_j exp(z_j))$
+
+So, that's the logits - logsumexp(logits)
+
+So cross-entropy becomes:
+
+> loss = -log_prob(correct token) = -(z_k - logsumexp(z)) = logsumexp(z) - z_k
+
+And the logits across vectors differ by a constant, 
+
+log_probs(" Mary") - log_probs(" John") ->
+<br><br>= [logits("Mary") - logsumexp(logits)] - [logits("John") - logsumexp(logits)]
+
+<br>= logits("Mary") - logsumexp(logits) - logits("John") + logsumexp(logits)
+
+<br>= logits("Mary") - logits("John")
+
+### What about LayerNorm??
+
+LayerNorm is similar to batch norm, which is a technique in deep learning to stablize the learning of models while making it faster. At each layer, the inputs will have 0 mean and S.D of 1. 
+
+So, what's the difference between both?
+
+Batch norm normalizes across the batches, as the name suggests. But, this is a problem for trnasformers because batch size matters. Small batches give noisy estimates of mean and variance. And at inference time with batch size 1, you have to use running statistics from training — which introduces a train/test discrepancy. Also sequence length varies across examples making it awkward.
+
+LayerNorm — normalize across the features. For each example independently, compute mean and variance across all feature dimensions.
+
+For example i at position t:
+
+mean = average of x[i][t][j] across all j in d_model
+
+var  = variance of x[i][t][j] across all j in d_model
+
+normalized = (x[i][t][j] - mean) / sqrt(var + epsilon)
+
+Each token's vector gets normalized using only its own statistics. No dependence on other examples in the batch, no dependence on batch size, no train/test discrepancy.
+
+Why transformers use LayerNorm: each token's residual stream vector is normalized independently. Doesn't matter if batch size is 1 or 1000. 
+Works cleanly at inference. Stable across variable sequence lengths.
+
+TLDR -> BatchNorm normalizes each feature across examples. LayerNorm normalizes each example across features. Same math, different axis.
+
+> Layer norm is almost a linear map, apart from the scaling step, because that divides by the norm of the vector and the norm is not a linear function. (The **fold_ln** flag when loading a model factors out all the linear parts)
+
+> Getting an output logit is equivalent to projecting onto a direction in the residual stream, and the same is true for getting the logit diff.
+
+### More calculations
+
+Suppose our final value in the residual stream for a single sequence and a position within that sequence is x (i.e. x is a vector of length d_model). Then, ignoring layernorm, we get logits by multiplying by the unembedding matrix W_U (which has shape [d_model, d_vocab]):
+
+output = xᵀ W_U
+
+Now, remember that we want the logit diff, which is output_IO − output_S (the difference between the logits for our indirect object and subject). We can write this as:
+
+$logit diff = (xᵀ W_U)_IO − (xᵀ W_U)_S = xᵀ (u_IO − u_S)$
+
+That second part with $u_{IO}$ and $u_S is a bit of a jump but this is how it works.
+
+W_U has shape [d_model, d_vocab]. So xᵀ W_U gives you a vector of length d_vocab — one logit per vocabulary token. 
+
+When you index into that result with _IO, you're selecting one specific element. That element is the dot product of x with one specific column of W_U. Specifically the column corresponding to the IO token.
+
+$(xᵀ W_U)_{IO} = x^Tu_{io} $
+
+So...
+
+$(xᵀ W_U)_{IO} − (xᵀ W_U)_S = x^Tu_{io} - x^Tu_{S}$
+
+And then you take $x^t$ common. 
+
+To be clear, W_U, the unembedding matrix, is learned during training, just like the rest of the matrices. 
+
+And here's the cool part. Those values we just derived? It's callled the logit difference direction
+
+$u_{io} - u_s $
+
+In the field, the word projection is used, which means dot products of this kind. 
+ 
 
 
 ### Experimentation log
