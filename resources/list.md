@@ -21,6 +21,17 @@
 | ARENA 1.4.2 — SAE Circuits | https://learn.arena.education/chapter1_transformer_interp/22_sae_circuits/ | New | arena, sae, circuits | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | Towards Automated Circuit Discovery for Mechanistic Interpretability (Conmy et al., 2023; ACDC) | https://arxiv.org/abs/2304.14997 | New | circuits, automation, acdc | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 
+### Tools / Demos / Reference Sites (non-papers)
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Clean Transformer Demo (Easy-Transformer) — Colab notebook | https://colab.research.google.com/github/neelnanda-io/Easy-Transformer/blob/clean-transformer-demo/Clean_Transformer_Demo_Template.ipynb | New | colab, demo, transformers, training |  |
+| Exploratory Analysis Demo (TransformerLens) — Colab notebook | https://colab.research.google.com/github/TransformerLensOrg/TransformerLens/blob/main/demos/Exploratory_Analysis_Demo.ipynb | New | colab, demo, transformerlens, ioi |  |
+| Inspect (UK AISI) — LLM eval framework (docs) | https://inspect.aisi.org.uk/ | New | evals, tooling, inspect |  |
+| MLOps, LLM and generative AI courses — Weights & Biases | https://wandb.ai/site/courses/ | New | courses, tooling, wandb |  |
+| AIPapers.ai — discover latest AI research | https://aipapers.ai/ | New | papers-index, discovery |  |
+| Thread: IOI circuit paper announcement — @kevrowan (Thread Reader App) | https://threadreaderapp.com/thread/1587601532639494146.html | New | thread, ioi, overview |  |
+
 ### Circuit Discovery
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
