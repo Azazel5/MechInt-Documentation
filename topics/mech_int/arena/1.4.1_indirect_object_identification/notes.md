@@ -322,7 +322,34 @@ Now we can look at those attention heads specifically too.
 
 There are negative heads too, ones which push the incorrect answer logit up. So, that is strange. Also something to zoom into for sure! Things like that could be potentially more informative. 
 
+## Attention Analysis
 
+Also understand and use the circuitsvis library in collaboration with TransformerLens. 
+
+Here's a subtle point:
+
+When you see an attention head attending strongly to token X, you assume it's because the head cares about what token X is — its identity, its meaning, its linguistic properties.
+So if a head attends to the period at the end of a sentence, you assume it's doing something period-specific. Punctuation detection. Sentence boundary identification. Something about the "." token itself.
+
+**Why that assumption is wrong**:
+
+The residual stream at any position is not just the embedding of that token. It's the embedding plus everything every previous layer has written into that position.
+By layer 10, the residual stream at the period position might contain:
+
+The original "." embedding — small contribution
+Summary information about the whole sentence written there by earlier attention heads
+Subject-verb agreement signals written there by layer 3
+Factual associations written there by layer 6
+Syntactic role information written there by layer 8
+
+The period just happens to be a convenient parking spot. Earlier heads used it as a scratch pad to accumulate sentence-level information because it's a stable, predictable position at sentence boundaries.
+
+When a late-layer attention head attends to the period position, it might not care about punctuation at all. It's attending there because that's where the sentence summary got stored by earlier layers. The period is just the address. The content is something completely different.
+
+Think of it like a mailbox. The mailbox has an address — "." — but what's inside the mailbox has nothing to do with the physical mailbox itself. Earlier layers delivered packages there. Later layers pick up those packages. The mailbox is just the location.
+Attention patterns tell you where information was picked up from. They don't tell you what that information is or why it's there. To know what's actually in the residual stream at that position you need to look at the residual stream vector itself — which is exactly what my activation patching experiments do, and I'd imagine most intepretability work also does this. 
+
+The token is the address. The circuit is the content.
 
 ### Experimentation log
 
