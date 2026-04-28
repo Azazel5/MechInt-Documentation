@@ -351,6 +351,83 @@ Attention patterns tell you where information was picked up from. They don't tel
 
 The token is the address. The circuit is the content.
 
+Reminder - you can use attention_patterns or attention_heads for these visuals.
+
+## Activation Patching
+
+Causal tracing, this phrase you have seen over and over again, is actually synonymous with activation patching. 
+
+We can patch into a transformer in many different ways (e.g. values of the residual stream, the MLP, or attention heads' output - see below). **We can also get even more granular by patching at particular sequence positions (not shown in diagram).** Similar in spirit to what I did with experiment 3 in BizzaroWorld: patching to the entity token position.
+
+> So, what does "patching sequence positions" mean?
+
+Two Independent Dimensions of Where You Patch
+
+When you run a forward pass, every component (residual stream, attention output, MLP output) produces an activation at every token position, at every layer. So you have a grid:
+
+| | "The" | "capital" | "of" | "France" | "is" | "___" |
+|---|---|---|---|---|---|---|
+| **Layer 0** | ■ | ■ | ■ | ■ | ■ | ■ |
+| **Layer 1** | ■ | ■ | ■ | ■ | ■ | ■ |
+| **...** | | | | | | |
+| **Layer 17** | ■ | ■ | ■ | ■ | ■ | ■ |
+
+Every cell is a vector. You can patch any cell from the corrupt run into the clean run.
+
+Dimension 1 — Layer: which row
+
+Dimension 2 — Token position: which column
+
+Dimension 3 — Component: residual stream vs attention out vs MLP out at that cell
+
+These three dimensions are fully independent. 
+Patching "at a particular sequence position" just means fixing the column.
+
+And patching through this grid is exactly what BizzaroWorld experiments 1 through 4 did! 
+
+## Noising and denoising
+
+Activation patching is noising. We can also consider the opposite algorithm, denoising, where we run the model on a corrupted input and remove noise by patching in from the clean input.
+
+> When would you use noising vs denoising? 
+
+It depends on your goals. The results of denoising are much stronger, because showing that a component or set of components is sufficient for a task is a big deal. On the other hand, the complexity of transformers and interdependence of components means that noising a model can have unpredictable consequences. If loss goes up when we ablate a component, it doesn't necessarily mean that this component was necessary for the task. As an example, ablating MLP0 in gpt2-small seems to make performance much worse on basically any task (because it acts as a kind of extended embedding),  but it's not doing anything important which is specific for the IOI task.
+
+Question - we could instead have our corrupted sentence be "When John and Mary went to the store, Mary gave a drink to" (i.e. flip all 3 occurrences of names in the sentence). Why do you think we don't do this?
+
+At some point, this prompt could result in "John gave a drink John", if it started containing some representation of the information "the indirect object is the fourth token in this sequence. 
+
+The model could point to the indirect object ' Mary' in two different ways:
+
+1. Via token information, i.e. "the indirect object is the token ' Mary'".
+
+2. Via positional information, i.e. "the indirect object is the fourth token in this sequence".
+
+Very nice, so we're going to write our own hooks, instead of just calling the patching function from TransformerLens. I love that, building up understanding from first principles. Exactly like how experts do it. 
+
+## Creating a metric
+
+Good. Looks like my gut is exactly on the right track here. This is precisely what I did in the beginning of BizzaroWorld. Let's learn how these guys do it!
+
+The metric you create should:
+
+1. Be 0 when there's no change from the patched activations
+
+2. Be 1 when clean performance has been completely recovered
+
+It also makes sense to have the metric be a linear function of the logit difference.
+
+Failing to reject null ≠ proving the component is useless. It means you don't have enough evidence to claim it matters.
+
+Rejecting null ≠ proving the component is the mechanism. It means this component is a causally relevant piece. How relevant, and in what circuit, is the next question.
+
+This is exactly why BizzaroWorld Experiment 4 was honest — I found Head 2 most consistent at 40% but explicitly didn't claim it was the routing head. 
+
+I rejected the null for Head 2 but recognized the effect size was small relative to full entity damage. Just trying to be rigorous. 
+
+
+
+
 ### Experimentation log
 
 - torch.gather() lets you index into d_vocab using your answer token indices, pulling out exactly the two logit values you care about per batch item without looping.

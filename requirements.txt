@@ -3,4 +3,7 @@ transformers
 transformer-lens
 jupyter
 matplotlib
-numpy
+numpy<2
+plotly
+ipywidgets
+pandas
