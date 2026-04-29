@@ -172,51 +172,22 @@ This task was chosen because:
 2. It involves genuine multi-step reasoning (track two names, identify which is the IO)
 3. GPT-2 Small solves it reliably, making it tractable to study
 
-**[INSERT FIGURE: resid_pre activation patching heatmap — layers × token positions, color = ioi_metric score]**
+![resid_pre activation patching heatmap — layers × token positions, color = ioi_metric score](../../images/resid-pre-activation-patching.png)
 
 The heatmap reveals immediately which (layer, position) cells, when patched from the clean run into the corrupt run, recover the correct answer. The signal concentrates in specific layers at specific token positions — not uniformly distributed.
 
-**Denoising vs. Noising — Two Complementary Questions**
+**Denoising vs. Noising: two Complementary Questions**
 
 | Mode | Direction | Question | 0 means | 1 means |
 |---|---|---|---|---|
 | Denoising | Clean → corrupt | Is this component *sufficient*? | Component irrelevant | Fully recovers performance |
 | Noising | Corrupt → clean | Is this component *necessary*? | Component irrelevant | Fully destroys performance |
 
-A component that is both necessary and sufficient is the core of the circuit. Components that are sufficient but not necessary indicate redundancy. Components that are necessary but not sufficient indicate distributed computation — the finding we keep hitting.
+A component that is both necessary and sufficient is the core of the circuit. Components that are sufficient but not necessary indicate redundancy. Components that are necessary but not sufficient indicate distributed computation, the finding I keep hitting on Gemma2B for factual recall.
 
 ---
 
-## Part 6: What BizzaroWorld Found
-
-My study used a controlled fact battery of 60 prompt pairs across 20 knowledge categories, with a custom metric called **TotalSwing = LD_clean − LD_corrupt** (bidirectional logit difference) to select the most informative pairs.
-
-**The three-phase factual recall circuit in Gemma 2B:**
-
-**Phase 1 — Storage (layers 0–14, entity token position)**
-The residual stream at the entity token position stores factual identity. Residual stream dominates 40× over attention and MLP outputs. 86.7% of top-15 pairs release their stored signal at layers 13–15.
-
-**Phase 2 — Routing (distributed, attention heads)**
-Attention heads move signal from entity position → final prediction position. No single head is sufficient — the routing is collective. Head 2 is the most consistent (40% of pairs across selection modes), but individual head damage (max ΔLD = -0.68) is small compared to full entity damage (ΔLD = -11.47).
-
-**Phase 3 — Readout (layers 15–17, final token position)**
-The final token position reads out the answer in late layers. Late blocks are pass-through, not computation — the answer is already encoded, just being retrieved. This finding was unanimous across all three selection modes and all 20 knowledge categories.
-
-**[INSERT FIGURE: Experiment 1 — residual stream patching heatmap, final token position, 18 layers]**
-
-**[INSERT FIGURE: Experiment 3 — entity token position patching, 18 layers — mirror image of Experiment 1]**
-
-**[INSERT FIGURE: Experiment 2A — sublayer decomposition, layers 15–17 — residual stream vs. attention vs. MLP]**
-
-**Key numbers:**
-- Pearson r = -0.83 between model confidence and damage score (Experiment 1)
-- Mean worst layer = 16.3 across all selection modes
-- Layer 15 is the handoff point — entity storage collapses to near-zero damage at this layer
-- Residual stream damage ratio: 40× early vs. late layers (Experiment 3)
-
----
-
-## Part 7: What This Means — And What Comes Next
+## Part 6: What This Means: and What Comes Next
 
 The three-phase circuit is a clean, falsifiable claim about how Gemma 2B retrieves facts. It says:
 
@@ -227,7 +198,9 @@ The three-phase circuit is a clean, falsifiable claim about how Gemma 2B retriev
 **What I haven't done yet (next experiments):**
 
 - **Path patching (Experiment 5):** sharpens the distributed routing finding into a directed circuit graph — which components causally influence which others, and in what order
+
 - **CMAP:** cross-model activation patching between Gemma 2B base and instruction-tuned to see how fine-tuning changes the circuit
+
 - **Cross-architecture replication:** do LLaMA 8B, Mistral 7B, and Qwen 2.5 7B show the same three phases? If yes, this is a universal finding about transformer factual recall
 
 **The bigger question this points toward:**
@@ -244,6 +217,7 @@ Mechanistic interpretability gives us the tools to ask — and potentially answe
 - Wang et al. (2022): "Interpretability in the Wild" — the IOI paper that established path patching
 - Conmy et al. (2023): ACDC — automated circuit discovery
 - TransformerLens: [github.com/neelnanda-io/TransformerLens](https://github.com/neelnanda-io/TransformerLens) — the toolkit that makes all of this tractable
+- [https://arxiv.org/html/2402.14811v1](Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking, the paper)
 
 ---
 
