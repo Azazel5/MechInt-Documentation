@@ -1,4 +1,4 @@
-# What's Actually Happening Inside a Language Model? An Deep Dive into Mechanistic Interpretability, part 1
+# What's Actually Happening Inside a Language Model? A Deep Dive into Mechanistic Interpretability, part 1
 
 *By Subhanga Upadhyay — MS CS 2026, Tufts University | AI Systems & Mechanistic Interpretability*
 
