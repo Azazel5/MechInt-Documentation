@@ -308,7 +308,7 @@ Attention layer = move information around
 
 MLP layer = to process information
 
-![](2026-04-27-00-26-18.png)
+![Logit difference from each layer](images/logit-difference-from-each-layer.png)
 
 > Question - what is the interpretation of this plot? What does this tell you about how the model solves this task?
 
@@ -322,9 +322,13 @@ Now we can look at those attention heads specifically too.
 
 There are negative heads too, ones which push the incorrect answer logit up. So, that is strange. Also something to zoom into for sure! Things like that could be potentially more informative. 
 
+![Logit Difference From Each Head](images/logit-difference-from-each-head.png)
+
 ## Attention Analysis
 
 Also understand and use the circuitsvis library in collaboration with TransformerLens. 
+
+![Top 3 Positive / Negative Logit Attribution Heads](images/top-3-logit-attribution-heads.png)
 
 Here's a subtle point:
 
@@ -356,6 +360,8 @@ Reminder - you can use attention_patterns or attention_heads for these visuals.
 ## Activation Patching
 
 Causal tracing, this phrase you have seen over and over again, is actually synonymous with activation patching. 
+
+![resid_pre Activation Patching](images/resid-pre-activation-patching.png)
 
 We can patch into a transformer in many different ways (e.g. values of the residual stream, the MLP, or attention heads' output - see below). **We can also get even more granular by patching at particular sequence positions (not shown in diagram).** Similar in spirit to what I did with experiment 3 in BizzaroWorld: patching to the entity token position.
 
