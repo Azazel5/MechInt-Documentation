@@ -51,10 +51,9 @@ In summary:
 
 - During training: you need weights + gradients (same size as weights) + Adam optimizer state (2× weight size)[^1] + stored activations for backprop. A 16GB model becomes a ~64GB training job before you've touched the data.
 
-[^1]: you can use any optimizaer that you want! That is the crux of this finding; there are optimizers particularly focusing in saving VRAM memory, so we can shop around. Of course, these things have a tradeoff because Adam is as SOTA as you get, but there's that.
+[^1]: you can use any optimizer that you want! That is the crux of this finding; there are optimizers particularly focusing in saving VRAM memory, so we can shop around. Of course, these things have a tradeoff because Adam is as SOTA as you get, but there's that.
 
-
-This is why **QLoRA** is such a breakthrough. You quantize the frozen weights to 4-bit (halving the weight to VRAM footprint), then train only low-rank adapter matrices (Low Rank Adaptation or LoRA). Only the tiny adapter parameters need gradients and optimizer state. Result: you can fine-tune LLaMA 70B on a single A100 80GB. The math works.
+This is why **QLoRA** is such a breakthrough. You quantize the frozen weights to 4-bit (halving the weight footprint), then train only low-rank adapter matrices (LoRA). Only the tiny adapter parameters need gradients and optimizer state. Result: you can fine-tune LLaMA 70B on a single A100 80GB. The math works.
 
 ---
 
@@ -148,7 +147,7 @@ Layer 17:       ■        ■        ■       ■        ■      ■
 **Dimension 2 — Token position:** which column  
 **Dimension 3 — Component:** residual stream, attention output, or MLP output at that cell
 
-Each experiment fixes some dimensions and sweeps others. This is exactly the methodology I used in BizzaroWorld (my mechanistic interpretability study on Gemma 2B, so these numbers are from real values I extracted from doing activation patching as described on Gemma2B):
+Each experiment fixes some dimensions and sweeps others. This is exactly the methodology I used in BizzaroWorld (my mechanistic interpretability study on Gemma 2B):
 
 - **Experiment 1:** Fixed column (final token position), swept all rows → found late layers 15–17 bear causal load. Mean worst layer = 16.3 across all three selection modes.
 - **Experiment 3:** Fixed different column (entity token position), swept all rows → found early layers 0–14 store entity information. Mirror image of Experiment 1.

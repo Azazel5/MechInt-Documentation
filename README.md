@@ -43,6 +43,39 @@ Resources are indexed in [resources/list.md](resources/list.md) and must always 
 - [src](src): Shared code, reusable utilities, and core components.
 - [docs](docs): Supporting documentation.
 
+## Quarto Sync (copy rendered posts to website)
+
+`quarto-sync/sync-quarto.sh` copies Quarto-rendered outputs **into your website repo**.
+
+Your website lives in a **different repo/path**, so this script intentionally requires you to pass a destination path (`--dest` or `DEST=...`).
+
+### What it copies
+
+- `<stem>.html`
+- `<stem>_files/` (Quarto’s generated asset folder)
+- `images/` (copied into `<dest>/images/`)
+
+### Usage
+
+```bash
+./quarto-sync/sync-quarto.sh --src <dir-or-qmd> --dest <website-path> [--stem <name>] [--images <images-dir>]
+```
+
+Examples:
+
+```bash
+# If you're in the Quarto output folder and it contains exactly one .html:
+./quarto-sync/sync-quarto.sh --src . --dest "/path/to/website/some/subdir"
+
+# If you want to be explicit:
+./quarto-sync/sync-quarto.sh --src ./post.qmd --stem post --images "../../../../images" --dest "/path/to/website/some/subdir"
+```
+
+### Notes
+
+- The script uses `rsync -a --delete` so the destination mirrors your current render output.
+- If it can’t find an `images/` directory by searching upward from `--src`, pass `--images` explicitly.
+
 ## Execution Expectations
 
 - Build from first principles, but ship artifacts.
