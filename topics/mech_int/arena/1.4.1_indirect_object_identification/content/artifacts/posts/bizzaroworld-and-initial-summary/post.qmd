@@ -14,7 +14,7 @@ Let me take you from hardware constraints all the way to circuit-level findings.
 
 ## Part 1: Before We Interpret Anything: Understanding What Lives in Memory
 
-As I ran experiments on this topic, I realized I didn't actually know what I was actually fitting in my GPUs! It seemed to me that this was not trivia — it determined what I could could study and do on a HPC, so I needed to know this.
+As I ran experiments on this topic, I realized I didn't actually know *what* I was fitting in my GPUs! It seemed to me that this was not trivia — it determined what I could could study and do on a HPC, so I needed to know this.
 
 **The VRAM equation breaks down into four components:**
 
@@ -43,13 +43,19 @@ As I ran experiments on this topic, I realized I didn't actually know what I was
 
 **Why does inference use so much less memory than training?**
 
-During inference: you only need the weights and a small KV cache (negligible for short sequences). Which is exactly the case for my experimentations, an ant compared to LLM providers who have to deal with arbitrarily large text that people apply at inference. Since, the kv cache scales with seq_len (the input token sequence), this is a giant problem for those folks which is why tons of research is poured into KV cache optmization and why the paper TurboQuant by Google was such a big deal! 
+During inference, you only need the weights and a small KV cache (negligible for short sequences), which is exactly the case for my experimentations, an ant compared to LLM providers who have to deal with arbitrarily large text that people apply at inference. Since the kv cache scales with seq_len (the input token sequence), this is a giant problem for those folks which is why tons of research is poured into KV cache optmization, and why the paper TurboQuant by Google was such a big deal! 
 
-But for my experiments the inference input tokens are always constrained (typically < 100 words>), so this is not a problem at all.
+But for my experiments, the inference input tokens are always constrained (typically < 100 words), so this is not a problem at all.
 
 In summary:
 
-- During training: you need weights + gradients (same size as weights) + Adam optimizer state (2× weight size) + stored activations for backprop. A 16GB model becomes a ~64GB training job before you've touched the data.
+- During training: you need weights + gradients (same size as weights) + Adam optimizer state (2× weight size)[^1] + stored activations for backprop. A 16GB model becomes a ~64GB training job before you've touched the data.
+
+[^1]: you can use any optmizaer that you want!
+
+Testing a footnote here[^test].
+
+[^test]: If you see this at the bottom of the preview, your syntax is working!
 
 This is why **QLoRA** is such a breakthrough. You quantize the frozen weights to 4-bit (halving the weight footprint), then train only low-rank adapter matrices (LoRA). Only the tiny adapter parameters need gradients and optimizer state. Result: you can fine-tune LLaMA 70B on a single A100 80GB. The math works.
 
@@ -172,7 +178,7 @@ This task was chosen because:
 2. It involves genuine multi-step reasoning (track two names, identify which is the IO)
 3. GPT-2 Small solves it reliably, making it tractable to study
 
-![resid_pre activation patching heatmap — layers × token positions, color = ioi_metric score](../../images/resid-pre-activation-patching.png)
+![resid_pre activation patching heatmap — layers × token positions, color = ioi_metric score](../../../../images/resid-pre-activation-patching.png)
 
 The heatmap reveals immediately which (layer, position) cells, when patched from the clean run into the corrupt run, recover the correct answer. The signal concentrates in specific layers at specific token positions — not uniformly distributed.
 
