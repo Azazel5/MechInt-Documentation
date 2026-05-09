@@ -1,0 +1,171 @@
+## LOCALIZING MODEL BEHAVIOR WITH PATH PATCHING
+
+Path patching was first introduced by the Wang paper after all. To be started today then. So they implemented a server style sender/receiver component through which they measure the interactions between the attention heads. 
+
+> When path patching rejects a hypothesis, path patching attribution shows the source of the discrepancies, allowing the researcher to iteratively refine the claim.
+
+[Open source framework for path patching experiments!](https://github.com/redwoodresearch/rust_circuit_public)
+
+The path patching methodology as proposed in the paper can apply to any function, but they're obviously focusing on the forward passes done by autoregressive transformers. 
+
+So at this point we're talking about the neural network as a DAG, with nodes and edges as connections. 
+
+So they have divided a two layer network into two functions that sum to the original, which seems to be a valid technique. If we suspect that f1 is unimportant, we can replace counterfactual inputs x on it. The hypothesis is that since these nodes are unimportant, the output should not change. Just like activation patching. 
+
+So the full pipeline in practice is:
+
+Activation patching — sweep the 3D cube, find which (layer, position, component) cells matter. Now you have candidates.
+Path patching — for each candidate, ask: does this component get its signal from another specific component? Build the directed graph.
+Subgraph hypothesis — now you have a proposed circuit. This is when you apply the technique you're reading — replace counterfactual inputs on the components you hypothesize are unimportant, verify the output doesn't change.
+DCM — does step 3 automatically at scale instead of by hand.
+
+But before we build suspucions, we need suspicious candidates first. The verification technique only makes sense once you have that suspicion grounded in data. This is exactly why BizzaroWorld's Experiments were necessary before, I could design Experiment 5 grounded in these papers. I needed the activation patching results to know which heads were worth path patching, so it looks like I am on track. 
+
+
+## KL Divergence??
+
+Recall what the KL divergence signifies. Measures how much one probability distribution differs from a reference distribution. Formally: "if I thought the world followed distribution Q, but it actually follows P, how much information am I losing?"
+
+![alt text](kl.png)
+
+This is always > 0, 0 only when distributions P and Q are identical, and not symmetric, meaning:
+
+A symmetric function means f(a,b) = f(b,a). Distance between cities is symmetric — London to Paris = Paris to London.
+KL divergence is not that. D_KL(P‖Q) ≠ D_KL(Q‖P) because the two directions ask fundamentally different questions:
+
+P‖Q — I built model Q.
+surprised would reality be by it? How surprised would my model Q be by reality P?
+
+Q‖P —I built model P. How surprised would reality Q be by my model P?
+
+> Practical significance: in ML you always care about P‖Q — how wrong your model is about reality, weighted by what reality actually does.
+
+Nats is the unit but that depends on what base of log you use. If you use e, then it is nats. We're measuring information here. There's no fixed scale for "large" — it's always relative to your problem. 
+
+| Outcome | P (true) | Q (approx) |
+|---|---|---|
+| A | 0.5 | 0.4 |
+| B | 0.3 | 0.4 |
+| C | 0.2 | 0.2 |
+
+$DKL​(P∥Q)$
+
+= 0.5\log0.40.5​+0.3\log0.40.3​+0.2\log0.20.2​
+
+= 0.5(0.223)+0.3(−0.288)+0.2(0)= 0.5(0.223) + 0.3(-0.288) + 0.2(0)=0.5(0.223)+0.3(−0.288)+0.2(0)
+
+= 0.1115−0.0864+0=0.0251 nats
+
+= 0.1115 - 0.0864 + 0 = 0.0251  nats
+
+= 0.1115−0.0864+0
+
+= 0.0251 nats
+
+Smaller the value, the more Q is a decent approximation of P.
+
+The Treeify function is just the mechanical solution to a surgical problem: how do you inject x_c into only that one path without contaminating the other paths that share the same intermediate nodes? You make copies of the shared subtrees so each consumer gets its own independent version to patch into.
+
+When you work in this space, polysemticity isn't the only problem. Remember that you work with text, so this means other factors that need considerations are:
+
+1. Unigram frequency contamination (the word "elephant" appears more in training data than "mouse", so the model has a prior toward it regardless of the question)
+
+2. Recency bias (the model tends to favor the most recently seen token)
+
+The fix that the authors propose is: add the flipped version to your dataset:
+
+"Which animal is smaller, elephant or mouse? The answer is:".
+
+> I think there's a risk here too, which has been mentioned by Scheurer et al. (2023) warning at the bottom of the passage — cancellation can be misleading. The authors are acknowledging the limitation themselves.
+
+> The flipped prompt might have its own unigram bias already baked in, pointing in the same direction as the correct answer, which means you're not measuring the model's reasoning ability — you're measuring two different unigram biases that happen to both point correctly. Which means, when designing prompts, doing this analysis is an important first step!
+
+Either way, the authrs have given us a clean metric to use to distinguish deeper, which is it?
+
+![alt text](expectation.png)
+
+**One note** - the metric tells you the outcome but not the cause of failure. A non-zero result could mean bad circuit or bad dataset. You still need the prompt design discipline we just discussed to be confident that when the metric is zero, it's because the circuit is genuinely faithful rather than because the noise happened to cancel accidentally.
+The metric is necessary but not sufficient for validity.
+
+
+## Previous token and induction heads
+
+Consider a sequence like [A][B] .. [A], and we're trying to predict what the transformer will predict after that sequence. Position i = second A, j = prediction token position
+
+The induction head sits at i — that's where the prediction needs to happen. So, the previous token, at position J, will write onto the residual stream that is saw A. 
+
+### How The Induction Head Actually Reads The Signal
+
+Query: the IH at position i computes a query from the token [A] sitting there
+
+Key: every position in the context has written something into the residual stream. Position j has "[A] is previous" written there by PTH
+
+The match: the query "[A]" matches the key "[A] is previous" — because the IH has learned during training that "I am [A], find the place where [A] was previous"
+
+Attention: IH attends strongly from i to j
+
+Value: at position j, the residual stream also contains [B]'s representation. The value operation copies that into position i.
+
+During training, the model repeatedly encountered patterns like:
+cat sat ... cat → sat
+the dog ... the → dog
+Every time [A][B]...[A] appeared, the correct prediction was [B]. Gradient descent discovered that the two-head composition was an efficient solution — PTH flags previous tokens cheaply, IH matches and copies.
+The IH learned specifically to:
+
+Compute queries that look for "my token appeared previously"
+Match keys that encode "previous token was X"
+Copy values from that position
+
+This wasn't hand-designed. It emerged because it was the lowest-loss solution to in-context pattern completion across the entire training distribution.
+
+The key fact is that the PTH and IH co-evolved during training. The PTH learned to write a signal that the IH learned to read. They're not independently designed — they're jointly optimized. The key "[A] is previous" and the query "[A] looking for its previous occurrence" are two sides of the same learned communication channel.
+This is what makes circuit analysis hard — the components are entangled through training, not modular by design.
+
+
+## The model used for this work
+
+The team used a 2-layer, attention only autoregressive transformer trained on the OpenWebText dataset. This results in a simpler model, and that the attention heads alone are responsible for certain behavior or finding patterns in the data. In practice, full transformers with MLPs do better in practice. 
+
+Just to be clean, **autoregressive** means a model predicts the next element in a sequence based solely on the previous elements. During training, the future tokens are masked, so the model cannot cheat by looking ahead, and during inference time, the text is generated one token at a time. This contrasts with some non-autoregressive models (like some diffusion models or BERT-style masked LMs), which may predict multiple tokens simultaneously. 
+
+OpenWebText is an open-source dataset created as a clone/reproduction of OpenAI's proprietary WebText dataset, which was used to train early GPT models like GPT-2. Contains over 23 million URLs and extracts text from around 10 million HTML pages.
+
+## Hypotheses, first refinement with positions
+
+![alt text](images/hypothesis1.png)
+
+The PTH-K hypothesis claims:
+
+> The Key input to the induction head only depends on what the PTH wrote. Nothing else matters for the Key.
+
+The key matters because attention scores are computed as Query × Key. The induction head at position i (second "so") computes its attention scores by asking: "which position's Key matches my Query?" If PTH wrote "[A] is previous" into position j's Key, and the Query at position i is "[A]", they match — the induction head attends to j and copies "bad."
+
+**Note** - hese percentages are not attention scores. 
+
+
+Attention scores are computed inside a single forward pass:
+
+$score(i, j) = \frac{Q_i · K_j}{\sqrt{d_k}}$
+
+Softmax over those → attention weights → multiply by V → output. This happens inside one head, on one input. It's a number between 0 and 1 saying "how much does position i attend to position j."
+
+The Percentages In This Table — these are the path patching metric — the same normalized logit difference I built in BizzaroWorld.
+
+$metric = \frac{(current_LD - corrupted_LD)}{(clean_LD - corrupted_LD)}$
+
+- 0% = patching this hypothesis's paths made no difference. Induction behavior completely broken. Hypothesis explains nothing.
+
+- 100% = patching fully recovered clean performance. Hypothesis completely explains induction behavior.
+
+- 64.1% = Direct-V hypothesis recovers 64.1% of the performance gap between clean and corrupt runs.
+
+While the positional refinement dramatically helps V and Q, K was less significant — not that 55% is zero, but that the positional addition didn't help K the way it helped V and Q. Which tells us something: the Key pathway is already well-described by PTH alone, and the extra self-attention routes don't add much.
+
+The conclusion they draw: since Positional-K didn't improve much, there must be information from positions earlier than j-1 that matters for the Key — information the PTH isn't capturing because PTH only looks one step back. That's the motivation for Section 3.4 — "long induction" — where they extend the Key hypothesis to allow the model to attend further back in context.
+
+
+The long induction method
+
+
+
+
