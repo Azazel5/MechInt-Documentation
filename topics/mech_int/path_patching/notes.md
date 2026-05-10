@@ -164,8 +164,26 @@ While the positional refinement dramatically helps V and Q, K was less significa
 The conclusion they draw: since Positional-K didn't improve much, there must be information from positions earlier than j-1 that matters for the Key — information the PTH isn't capturing because PTH only looks one step back. That's the motivation for Section 3.4 — "long induction" — where they extend the Key hypothesis to allow the model to attend further back in context.
 
 
-The long induction method
+The long induction method is beneficial, but probably can be extended. Because the metric hasn't hit 100%.
+That's the entire information content of that sentence. If the hypothesis fully explained the behavior, the path patching metric would return 100% — meaning "restoring only these paths completely recovers clean performance."
+As long as it's below 100%, there are paths carrying causal signal that the current hypothesis hasn't accounted for. The gap between current score and 100% is literally the "room for improvement" they're referring to.
+
+The third refinement is for finding these missing components that could explain bits that are contributing and missing i.e. 40.5% of the behavior. 
+
+Somthing interesting happens here. In the example shown in the paper, the phrases "Newport Folk" appears first and then "Newport Jazz". The original model, when it sees "Newport" again, predicts "Jazz", but that's incorrect because the correct token that would follow would be "Jazz". So, in this case, the patched version is correct in that it assigns lesser probability to "Folk" while the original model confidently gives the wrong answer. 
+
+> Meaning, the induction heads are doing something beyond pure induction. They're implementing a repeating entities behavior — when the same named entity appears twice ("Newport"), they boost the token that followed it before ("Folk"), even when that's wrong.This is polysemanticity in action — the same heads implement multiple behaviors simultaneously. The hypothesis captured the induction behavior but missed this related-but-distinct repeating entity behavior. 
+
+The authors call this "parroting": if a token appears before, it thinks the next token will likely be the previous one too.
+
+Zero Ablation    → which heads are load-bearing at all
+Corrupted Input  → which heads carry input-specific information
+Patched Input    → which heads are causally sufficient 
+                   to restore clean behavior
 
 
+In summary, the authors have found that induction heads exhibit other behavior than just copying the previous token. They found parroting type copying behavior and hypothesize that these heads may do more than just that! 
 
+The authors recommend using average KL divergence because if the loss is higher on some examples but lower on others, they would cancel out. At the same time, it is not possible to test all possible inputs on large networks. Path patching is a complimentary technique to be used with other techniques. 
 
+The authors acknowledge that path patching has not been applied to SOTA models, and it remains to be shown if this scales to largest models. This could be something we scale up, although we will not be able to do this for the largest models either. They have recommended the use of a tool called Tracr (David Lindner, János Kramár, Matthew Rahtz, Thomas McGrath, and Vladimir Mikulik.Tracr: Compiled transformers as a laboratory for interpretability, 2023), which can be used to get ground truth labels to benchmark such greedy search methods.
