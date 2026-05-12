@@ -36,6 +36,109 @@ Once trained, the MCTS was combined with the networks, "to provide a lookahead s
 ## RL in AlphaGo Zero
 
 
+AlphaGo Zero uses a deep neural network with parameters $\theta$.  The inputs are raw board representations of the position and history and outputs both the move probabilities and the value, hence they call this a merged version of both networks. The network itself is pretty basic: multiple residual blocks of convolutional layers with batch normalization and (ReLU?) nonlinearities.
+
+In each position s, MCTS search is executed, but it's guided by the network. The output of the MCTS is probabilities $\pi$ of playing each move. This is how they were able to see that move 78 that Lee Sedol played in game 4 was a 1 in 10000, the god move. And also, move 37 played by AlphaGo itself was a move tremendously unlikely to be played by a human, concluded by AlphaGo itself. Yet, it chose to play it. Why...?
+
+MCTS told it to pick move 37, a shoulder on the fifth line. The neural network alone didn't choose move 37. The network gives a prior probability over all moves — its initial guess based on pattern recognition from self-play. Move 37 probably had a low prior. A human-trained network would have had an even lower prior.
+
+But then MCTS runs on top of that prior. It simulates thousands of game continuations from the current position, guided but not dictated by the network's probabilities. During those simulations, move 37 kept leading to winning positions — not obviously, not immediately, but across thousands of rollouts looking many moves deep.
+
+AlphaGo Zero doesn't have rollouts. While these were helpful to aggregate the performance of move 37, it wasn't strictly needed. AlphaGo Zero would be able to play move 37 too, WITHOUT such rollouts. Non-intuive, clever, but still performant. 
+
+The value network in AlphaGo Zero, trained purely through self-play against itself at full strength, gives a much more accurate estimate of position value without needing to simulate to the end. It learned to compress thousands of moves of lookahead into a single number — accurately. The value network is essentially doing the rollout implicitly — it has internalized what good play looks like across millions of self-play games and can evaluate a position directly without simulating forward.
+
+### So why no new findings using these approaches besides AlphaFold?
+
+What's Missing — The Three ConstraintsAlphaGo Zero worked because three conditions were simultaneously true:
+
+1. A perfect simulator existed
+
+    The rules of Go are complete, deterministic, and computable. You can simulate millions of games exactly. The environment is closed — nothing happens outside the rules.
+
+2. A clear reward signal existed
+
+    Win or lose. Binary, unambiguous, available at game end. No debate about what counts as success.
+    
+3. The action space was bounded. 
+
+    A 19×19 board. 361 possible moves plus pass. Large but finite and structured. 
+    
+Remove any one of these and the AlphaGo Zero approach breaks or becomes dramatically harder.
+
+### Why It Hasn't Been Applied Everywhere
+
+Most real domains violate at least one condition:
+
+Domain              Simulator?   Clear reward?   Bounded actions?
+──────────────────────────────────────────────────────────────────
+Go                  ✓ perfect    ✓ win/lose      ✓ 361 moves
+Chess               ✓ perfect    ✓ win/lose      ✓ ~35/position
+Protein folding     ✓ physics    ✓ energy min    ✓ angles
+Drug discovery      ✗ partial    ✗ noisy         ✗ vast
+Climate policy      ✗ none       ✗ contested     ✗ infinite
+Human relationships ✗ none       ✗ undefined     ✗ infinite
+Scientific discovery ✗ none      ✗ undefined     ✗ infinite
+Economics           ✗ partial    ✗ contested     ✗ infinite
+
+AlphaFold worked because physics gives you a simulator (energy functions) and a reward signal (minimum free energy). The protein folds to its lowest energy state — that's the objective, defined by nature itself.
+
+Drug discovery is harder because binding affinity is expensive to measure, the molecule space is astronomically large, and "does this cure the disease" takes years to know.
+
+The Deeper Problem: even where simulators exist, there's a subtler issue ->  Goodhart's Law.
+
+> When the measure becomes the target, it ceases to be a good measure.
+
+AlphaGo's reward — win the game — is perfectly aligned with what we actually want. Winning Go IS the goal. There's no gap between the proxy and the real objective.In most real domains that gap is enormous. Optimize for GDP and you get inequality. Optimize for clicks and you get outrage. Optimize for test scores and you get teaching to the test. The moment you define a reward function precisely enough for an RL agent to optimize, you've probably already distorted what you actually wanted.
+
+This is the alignment problem in its most fundamental form. AlphaGo Zero solved it by working in a domain where the proxy and the goal are identical. Most of the world isn't like that.
+
+### What Has Been Applied
+
+The ideas have propagated, just more slowly than you'd expect:
+
+AlphaGo Zero → AlphaZero (chess, shogi, Go unified)
+             → MuZero (learns the simulator too, 
+                       no rules given — bigger leap)
+             → AlphaFold (protein structure)
+             → AlphaTensor (discovers matrix multiplication algorithms)
+             → AlphaCode (competitive programming)
+             → AlphaProof (mathematical theorem proving)
+             → Isomorphic Labs (drug discovery)
+             → Waymo, robotics (partial — simulator problem)
+             
+AlphaTensor is the one that stunned mathematicians — it discovered faster matrix multiplication algorithms than humans had found in 50 years. Same paradigm: define the problem as a game, define winning precisely, let self-play find the answer.AlphaProof is the most recent and arguably the most significant — it proved IMO-level mathematics problems. Mathematical proof has a perfect simulator (formal logic) and a clear reward (valid proof or not). Same conditions as Go. Same result — superhuman performance.
+
+### What's Actually Missing
+
+Three open frontiers where the AlphaGo Zero paradigm could explode but hasn't yet:
+
+- Building simulators for domains that don't have them
+World models — neural networks that learn to simulate environments from data rather than from explicit rules. 
+
+MuZero was a step toward this. The frontier is: can you learn a good enough world model of, say, a biological cell to do AlphaGo Zero-style search in drug design?
+
+Reward specification for complex human values. This is the alignment problem directly. Can you define "human flourishing" precisely enough to optimize for it? Constitutional AI is one approach. RLHF is another. Nobody has solved this.
+
+### Transferring across domains
+
+AlphaGo Zero's Go knowledge is useless for chess. AlphaZero trained from scratch on each game separately. The dream is an agent that transfers — that uses what it learned about strategic thinking in Go to bootstrap faster in a new domain. This is the meta-learning frontier. Largely unsolved.
+
+### The Einstein Parallel Extended
+
+It's true that this is the Go equivalent of relativity. AlphaGo demonstrated creativity in its games, as concluded by Lee Sedol. After all, what is creativity if not questioning assumptions without bias and coming up with new conclusions, ones never foreseen by others? Isn't that what Einstein did with relativity? No other physicist before him had questioned prior paradigms and come up with novel approaches, which is what broke physics and cemented Einstein as one of the greatest sceintists of all time.
+
+Einstein's relativity was discovered in 1905. The applications — GPS, nuclear energy, particle accelerators, lasers — took 50-100 years to fully materialize. Not because people weren't trying, but because each application required solving additional hard problems that relativity alone didn't solve.
+
+AlphaGo Zero is 2017. We're 8 years in. The AlphaFolds and AlphaTensors are the early applications — the equivalent of the photoelectric effect and E=mc². The GPS equivalents — the transformative applications embedded in daily life — are probably still 10-20 years out.
+
+The missing piece isn't insight. It's infrastructure, compute, and crucially — finding the domains where the three conditions hold or can be engineered to hold.
+That last part is a research agenda. Finding domains where you can build a good enough simulator, define a clean enough reward, and bound the action space enough to apply self-play RL — and then doing the AlphaGo Zero thing there — that's a decade of work for a generation of researchers.
+
+## More on the paper
+
+> "The main idea of our reinforcement learning algorithm is to use these search operators repeatedly in a policy iteration procedure22,23: the neural network’s parameters are updated to make the move probabilities and value (p, v) = fθ(s) more closely match the improved search probabilities and self-play winner (π, z); these new parameters are used in the next iteration of self-play to make the search even stronger."
+
 
 
 ## Future resources and roadmap for RL
