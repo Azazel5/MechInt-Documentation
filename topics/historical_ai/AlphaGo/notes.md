@@ -140,6 +140,37 @@ That last part is a research agenda. Finding domains where you can build a good 
 > "The main idea of our reinforcement learning algorithm is to use these search operators repeatedly in a policy iteration procedure22,23: the neural network’s parameters are updated to make the move probabilities and value (p, v) = fθ(s) more closely match the improved search probabilities and self-play winner (π, z); these new parameters are used in the next iteration of self-play to make the search even stronger."
 
 
+![alt text](./figures/alphago,%20zero.webp)
+
+AlphaGo Zero began Tabula Rasa. For each board state $s_t$, it is calculating $\pi_1, \pi_2, ... , \pi_{T}$, which are the branching trees. The $\pi{s}$ are probability distributions, the ground truth of what the best move is on the basis of the lookahead.
+
+As for the NN training, the NN calculates two "heads" for each of the above board states. 
+
+1. $p_t$ (Policy Head): A vector representing the probability of selecting each move.
+
+2. $v_t$ (Value Head): A scalar representing the probability of the current player winning from that position.
+
+The loss function tries to minimize the NNs prediction's to the MCTS tree search. But, the counterintuitive thing is: In AlphaGo Zero, the neural network does help the MCTS during training, even when the weights are initially random. It's not a circular dependency. 
+
+At the very beginning ($i=0$), the weights $\theta$ are random.The MCTS at $i=0$: It uses the random NN to get a prior probability $p$ and a value $v$. Since the NN is garbage, $p$ is essentially a uniform distribution and $v$ is noise.The "Search Advantage": Even with random guidance, MCTS is still a search. It explores the game tree. By simply looking a few moves ahead and seeing which branches lead to a win (even if the evaluation at the leaf is random), it generates a policy $\pi$ that is slightly better than pure randomness.
+
+AlphaGo Zero isn't just "training"; it is Policy Iteration. In reinforcement learning, this is the classic $f_\theta \to \text{MCTS} \to f_{\theta'}$ loop.
+
+1. Step A (Self-Play): The current NN ($f_{\theta_i}$) guides the MCTS. 
+
+The search acts as a policy improver. It takes the "weak" raw intuition of the NN and uses lookahead to create a "strong" move ($\pi$).
+
+2. Step B (Optimization): The NN ($f_{\theta_{i+1}}$) is trained to predict the results of that search ($\pi$ and $z$). 
+
+This is the policy evaluation step. The NN is "distilling" the search's hard-earned knowledge into its own weights.The Recursive Logic: The NN isn't just helping the MCTS; the MCTS is amplifying the NN. The search takes whatever signal (however noisy) the NN has and makes it stronger. Then the NN learns that stronger signal.
+
+The distinction between training and inference can be detailed like so:
+
+![alt text](./figures/training_inference.png)
+
+> TLDR - The NN is the Intuition; MCTS is the Deliberation. In AlphaGo Zero, Deliberation is used to train Intuition, and Intuition is used to speed up Deliberation.
+
+
 
 ## Future resources and roadmap for RL
 
