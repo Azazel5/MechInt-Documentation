@@ -98,7 +98,7 @@ This is the alignment problem in its most fundamental form. AlphaGo Zero solved 
 The ideas have propagated, just more slowly than you'd expect:
 
 AlphaGo Zero → AlphaZero (chess, shogi, Go unified)
-             → MuZero (learns the simulator too, 
+             → MuZero and Sampled MuZero (learns the simulator too, 
                        no rules given — bigger leap)
              → AlphaFold (protein structure)
              → AlphaTensor (discovers matrix multiplication algorithms)
@@ -223,3 +223,15 @@ Self driving cars will be drawn on heavily because they face similar problems an
 6. Andrej Karpathy - CVPR 2021 Keynote on Tesla Autopilot
 
 7. Andrej Karpathy - Tesla AI Day 2021 / 2022
+
+8. Learning to Drive in a Day
+
+9. MILE
+
+10. World Models" (Ha and Schmidhuber, 2018) 
+
+Waymo: HD maps + classical planning + learned components
+Wayve: end-to-end learned world model, minimal priors
+Tesla: massive supervised learning on human demonstrations + neural planner
+
+Three different philosophies, all working at different levels. The comparison between them is itself a research paper waiting to be written from a mech interp perspective — what did each system learn, and how does the internal representation differ based on the training approach?
