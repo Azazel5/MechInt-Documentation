@@ -5,14 +5,14 @@ by localizing what the internal transformer model did one step at a time.
 
 1. First, I designed a battery of 60 clean/corrupt pairs
 2. Second, I did an initial triage into the prompts to find high signal ones by using a bidrectional **TotalSwing** metric
-3. I designed three modes of experimentation (A, B, and C) to be run at every experimental stage to carefully monitor if it would change anything about[^1] the results seen
+3. I designed three modes of experimentation (A, B, and C) to be run at every experimental stage to carefully monitor if it would change anything about the results seen[^1]
 4. Using this, I did a final token patch, followed by sublayers decomposition (residual stream, attention heads, MLP layer)
 
 [^1]: it did not. Across all experimental modes, the results were consistent, giving me confidence as an experimenter that the results and their interpretations were valid
 
 The core finding was a three-phase factual recall circuit:
 
-- **Phase 1 — Storage (layers 0-14[^2], entity token position):** 
+- **Phase 1 - Storage (layers 0-14[^2], entity token position):** 
   Facts are encoded as directions in the residual stream at the 
   entity token. The residual stream dominated causally here, 
   contributing 40× more than attention outputs and 18× more 
@@ -21,14 +21,14 @@ The core finding was a three-phase factual recall circuit:
   across all experimental modes (Pearson r = -0.83 between model 
   confidence and damage score).
 
-- **Phase 2 — Routing (distributed attention heads):** Signal 
+- **Phase 2 - Routing (distributed attention heads):** Signal 
   moves from the entity token position to the final prediction 
   position via attention heads collectively. No single head was 
   sufficient — Head 2 was most consistent at 40% of prompt pairs 
   across Mode A, but individual head damage (max ΔLD = -0.68) was 
   negligible compared to full entity damage (ΔLD = -11.47).
 
-- **Phase 3 — Readout (layers 15-17, final token position):** 
+- **Phase 3 - Readout (layers 15-17, final token position):** 
   The answer is retrieved, not computed. Late blocks are 
   pass-through — the signal is already encoded, simply being 
   read out. This was unanimous across all three experimental 
@@ -57,16 +57,16 @@ the model is carrying information regarding the tokens at the entity poisition u
 
 ### 3.3 Head routing: 2B vs 12B
 
-![alt text](./figures/Gemma2B-head-routing.png)
+![](./figures/Gemma2B-head-routing.png)
 
-![alt text](./figures/Gemma12B-head-routing.png)
+![](./figures/Gemma12B-head-routing.png)
 
 
 I had seen that different categories of facts behave differently in Gemma-2B, and this was further validated in Gemma-12B-IT. For instance, this graph shows how 5 different categories of facts. *For the experiments, I had designed 20 general categories of facts, ranging from geography to animals, as described below*.
 
-![alt text](./figures/experimental-categories.png)
+![](./figures/experimental-categories.png)
 
-![alt text](./figures/Gemma12B-categories-totalswing.png)
+![](./figures/Gemma12B-categories-totalswing.png)
 
 
 ## Tokenizer differences and their implications
