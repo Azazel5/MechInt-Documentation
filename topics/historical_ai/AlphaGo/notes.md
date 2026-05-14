@@ -205,3 +205,21 @@ Phase 3 (August onwards, combines with Evo2):
 
 
 That last question — what does RL training do to the internal circuits a model uses? — is almost completely unstudied. BizzaroWorld found the factual recall circuit in a pretrained model. What happens to that circuit after RLHF? After CAI? That's a paper nobody has written yet and it sits exactly at the intersection of your four pillars.
+
+## Non-stationary environments and large state spaces
+
+Self driving cars will be drawn on heavily because they face similar problems and are performing well. What can we learn about top tier systems that use RL to train agents to deal with this?
+
+1. Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model (MuZero) (Schrittwieser et al., DeepMind, 2019)
+
+2. Planning in Complex Objective Spaces (Sampled MuZero) (Hubert et al., DeepMind, 2021)
+
+3. Learning to Drive in a Day (Kendall et al., Wayve, 2018)
+
+4. Model-Based Imitation Learning for Urban Driving (MILE) (Wayve / Valeo, 2022)
+
+5. Mastering Diverse Domains through World Models (DreamerV3) (Hafner et al., 2023)
+
+6. Andrej Karpathy - CVPR 2021 Keynote on Tesla Autopilot
+
+7. Andrej Karpathy - Tesla AI Day 2021 / 2022
