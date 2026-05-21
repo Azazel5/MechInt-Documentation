@@ -152,6 +152,86 @@ Question - what is the interpretation of this graph? What significant things doe
 
 Around token positions (9-10), 14, and final, at layers 8, 8-final, and all the layers respectively (at different scales), activation patching is changing the behavior i.e. activation values of these tokens, which carry a causal signal about the task at hand. Yes, damage accrues aggressively towards the beginning for the S2 token i.e. the second "John" and then all damage is concentrated towards the final token position, starting at layers 8 onwards. Damage reaches its peak towards the end, with the thinking being that *routing* is occurring somewhere in between. Cool! Because this validates my findings in BizzaroWorld exactly.
 
+TransformerLens works by defining hook points onto each component of the model, and this is what and why you can hook onto any bit, including the ResidualStream. The ActivationCache type component is accessible too but it has a different way by which you need to access it (cache[hook.name]), so you need the hook's name, the HookPoint object. 
+
+## Patching in residual stream by block
+
+![Residual Block Patching](./1.4.1_indirect_object_identification/images/residual_blocks.png)
+
+This is experiment 2 of BizzaroWorld, where I'd used this. We want to see the logit differences and damage before and after the sublayers, to isolate relevant components. 
+
+Here we see that the residual stream has a large, positive effect on the corrupt run for those very token positions we saw earlier. The attention output is also present ONLY at those layers, and MLP does minimal, except at only token position 9. 
+
+> MLP layers specialize in information processing, so it makes sense that in experiments like these (and BizzaroWorld), its effects were extremely minimal.
+
+![Presidents and Ghosts](./1.4.1_indirect_object_identification/images/presidents%20and%20ghosts.png)
+
+MLP0 = first MLP sublayer of the first transformer layer, which seems to do something interesting and important, as we see on the graph above and as has been validated by other researchers too. But what? We can only talk hypothesis here it seems, but this is it:
+
+> "It's often observed on GPT-2 Small that MLP0 matters a lot, and that ablating it utterly destroys performance. The current accepted hypothesis is that the first MLP layer is essentially acting as an extension of the embedding, and that when later layers want to access the input tokens they mostly read in the output of the first MLP layer, rather than the token embeddings. Within this frame, the first attention layer doesn't do much."
+
+However, for this finding to hold true, the clean and corrupt pairs need to match such that ONLY at the target it differs. The author is arguing that only at that position, there's be a difference in extended embedding space, so If the token is identical AND the position is identical, the extended embedding is identical. Since all other positions have the same token at the same position, they have identical extended embeddings in both prompts.
+S2 is the only exception, different token, therefore different embedding, therefore different input to every component at that position. 
+
+My BizzaroWorld experiments weren't like that. The MLP0-at-S2 finding relies on a very specific property, that S2 is the ONLY position with a different extended embedding. If multiple positions differ between clean and corrupt, MLP0 shows signal at all of them, and the clean isolation of S2 disappears.
+
+So, is it worthwhile to design prompts this clean or do it like we did in BizzaroWorld?
+
+**BizzaroWorld approach:**
+
+| Property | Detail |
+|---|---|
+| Prompt design | 60 pairs across 20 categories |
+| Corruption type | Entity swap, variable context |
+| Token diff | Multiple positions may differ |
+| Selection | TotalSwing triage → golden pairs |
+| Strength | Breadth, generalizability |
+| Weakness | Less mechanistic precision |
+| Best for | Finding circuits that exist broadly |
+
+---
+
+**ARENA/IOI approach:**
+
+| Property | Detail |
+|---|---|
+| Prompt design | Single template, multiple name pairs |
+| Corruption type | Single token swap at fixed position |
+| Token diff | Exactly one position differs |
+| Selection | Controlled by design |
+| Strength | Mechanistic precision, clean attribution |
+| Weakness | Narrow, may not generalize |
+| Best for | Characterizing specific mechanisms precisely |
+
+This behavior would seem to suggest that the geometric structure of the embedding and unembedding spaces should be related. 
+
+To understand more, if we took out all the MLP and attention sublayers from the transformer, it would only calculate bigram statistics because that kind of entity would only calculate linear interactions between the embedding and unembedding matrices. The embedding and the unembedding together form the direct path (if we had no other components then the transformer would just be the linear map $x \rightarrow x^T W_E W_U$).
+
+Think of W_E · W_U as a giant lookup table:
+
+rows    = input tokens (what token am I?)
+columns = output tokens (what token comes next?)
+value   = logit (how likely is this next token?)
+
+A lookup table with no context is the definition of a bigram model. The matrix multiplication is just an efficient way to implement that lookup table in continuous space.
+
+Everything beyond bigrams, syntax, semantics, long-range dependencies, requires the attention heads and MLPs on top of this linear foundation.
+
+In the next exercise, we edit the above function to accept hooks pre-attention heads, post, and also the same for the MLP sublayer, and there are some helpful functions to know what's the name that TransformerLens to communicate about these points.
+
+1. TransformerLens docs
+https://transformerlensorg.github.io/TransformerLens/ — has a full list of hook names.
+2. utils.get_act_name helper
+pythonutils.get_act_name("resid_pre", 0) i.e. blocks.0. hook_resid_pre
+
+utils.get_act_name("attn_out", 3) i.e. blocks.3. hook_attn_out
+utils.get_act_name("mlp_out", 7) i.e. blocks.7.hook_mlp_out
+utils.get_act_name("z", 5) i.e. blocks.5.attn.hook_z
+
+This is the cleanest way — you pass a short name and a layer number, it returns the full hook string.
+
+3. Print all hooks directly from the model
+pythonprint(model.hook_dict.keys())
 
 
 
