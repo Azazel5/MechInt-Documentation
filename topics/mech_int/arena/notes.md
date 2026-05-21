@@ -141,6 +141,20 @@ Induction heads don't form for one layer transformers because of this sequential
 
 IOI = Indirect Object Identification. And yes — the IOI chapter is where path patching lives.
 
+
+# Attention heads and residual stream patching
+
+When we patch to every token position at the start of each layer, and write an HTML file using TransformerLens' patching module, this is what we get.
+
+![Residual Stream Patching](./1.4.1_indirect_object_identification/images/residual_stream_patching.png)
+
+Question - what is the interpretation of this graph? What significant things does it tell you about the nature of how the model solves this task?
+
+Around token positions (9-10), 14, and final, at layers 8, 8-final, and all the layers respectively (at different scales), activation patching is changing the behavior i.e. activation values of these tokens, which carry a causal signal about the task at hand. Yes, damage accrues aggressively towards the beginning for the S2 token i.e. the second "John" and then all damage is concentrated towards the final token position, starting at layers 8 onwards. Damage reaches its peak towards the end, with the thinking being that *routing* is occurring somewhere in between. Cool! Because this validates my findings in BizzaroWorld exactly.
+
+
+
+
 ## Setup for experimentation
 
-Area has two components. Instructions and exercises. I have cloned the repo to my Colab Drive space, and will be referring to that always. My workflow is: read the instructions chapter on learn.arena.education, and then do the associated exercises with the GPU inside the exercises directory, which is already an ipynb file, so it is nicely put together! 
+Area has two components. Instructions and exercises. I have cloned the repo to my Colab Drive space, and will be referring to that always. My workflow is: read the instructions chapter on learn.arena.education, and then do the associated exercises with the GPU inside the exercises directory, which is already an ipynb file, so it is nicely put together! B
