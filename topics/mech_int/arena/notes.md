@@ -233,7 +233,72 @@ This is the cleanest way — you pass a short name and a layer number, it return
 3. Print all hooks directly from the model
 pythonprint(model.hook_dict.keys())
 
+## Head to head patching
 
+So far we have patched in the residual stream at every token position, as well as before all the sublayer components. Now, we'll look at patching the output of individual attention heads rather than the full attention layer output.
+
+### The attention head computation pipeline
+
+To understand how to do this appropriately, let's understand what is actually happening.
+
+Q, K, V computed from residual stream <br>&darr;<br>
+Attention scores → softmax → attention pattern <br>&darr;<br>
+       
+Value vectors weighted by attention pattern → z  ← PATCH HERE <br>&darr;<br>
+       
+z × W_O  (projects from d_head → d_model) <br>&darr;<br>
+       
+Output added back to residual stream
+
+d_head is the attention head parameter, d_model is the model parameter. So, we project from d_head onto d_model after the entire aggregated attention head, and we're saying, prior to the weighing by each attention head, we patch there, before the projections. So, each attention head's activity is nicely patched, since each of fully independent and parallel to each other, no sequentialism, so this can be done.
+
+The key insight is that z lives in the space where heads are still structurally independent i.e. shape [batch, seq, n_heads, d_head]. Each head occupies its own slice along the n_heads dimension, so patching head 7 means you touch [:, :, 7, :] and nothing else moves.
+
+One thing worth keeping in our minds as we move to path patching later: z patching tells you a head matters, but not why: you don't know if the head is moving information via its Q, K, or V computation. This is where path patching will be more insightful.
+
+Hmm, layer 10, head 7 seems particularly prone to damage via patching. 
+
+![Head to head pathing](./1.4.1_indirect_object_identification/images/head%20to%20head%20patching.png)
+
+> Always use model.reset_hooks() on top of patching functions you write. TransformerLens hooks accumulate — if a previous run_with_hooks call crashed mid-loop or you manually added hooks somewhere, they can persist on the model object. reset_hooks() guarantees you start each experiment with a clean slate.
+
+## Decomposing Heads
+
+An attention head consists of two semi-independent operations - calculating where to move information from and to (represented by the attention pattern and implemented via the QK-circuit) and calculating what information to move (represented by the value vectors and implemented by the OV circuit).
+
+A useful function for doing this is get_act_patch_attn_head_all_pos_every. Rather than just patching on head output (like the previous one), it patches on:
+
+1. Output (this is equivalent to patching the value the head writes to the residual stream)
+2. Queries (i.e. the patching the query vectors, without changing the key or value vectors)
+3. Keys
+4. Values
+5. Patterns (i.e. the attention patterns).
+
+Again, note that this function isn't patching multiple things at once. It's looping through each of these five, and getting the results from patching them one at a time.
+
+**When we register hook_fn via fwd_hooks, TransformerLens calls it as: hook_fn(activation_tensor, hook_point_object)**
+
+Since partial already bound head_index and clean_cache, those two positional slots are satisfied. TL just needs to supply the first two — the actual live activation tensor and the hook metadata object — which it does automatically during the forward pass.
+So the flow is:
+
+You freeze the "slow" arguments ahead of time with partial
+TL supplies the "live" arguments at runtime — the actual tensor flowing through the model at that hook point
+Combined, all four arguments are satisfied and the function executes
+
+This is why partial is the standard pattern for TL hooks — you need the hook signature to be (tensor, hook) for TL to call it, but you also need to pass experiment-specific state like head_index. partial bridges that gap cleanly.
+
+dtype=model.cfg.dtype, use this as a dtype whenever you define a tensor, because you know how important this parameter is. Using whatever dtype that the model uses, is a good heuristic to use, unless you are actively working with quantized tensors to save VRAM space.
+
+The key insight from the plot — Output and Query are nearly identical, which makes mechanistic sense: patching z (output) vs patching q tells you whether the head matters via what it writes vs what it attends to. The fact that they match means the same heads are causally important regardless of which intervention you use — that's a robustness signal, not redundancy.
+
+Key observation from your plot: Layer 9-10, heads 6-9 are the hot zone — dark blue (strongly positive, restoring clean behavior) and dark red (strongly negative, hurting performance). That cluster is almost certainly where the name mover heads and S-inhibition heads live, which is exactly what the IOI circuit paper identifies. We're about to reverse-engineer the same circuit Wang et al. found.
+
+We need two different hook functions for attention pattern versus all the other 3 components: K, V, Q, and z. These latter ones are vectors with shape [batch, pos, head, d_head], but the pattern variable is a matrix [batch, head, pos_q, pos_k], where the matrix represents "how much does token at position q attend to token at position k, for each head." There's no d_head dimension because this is the attention weights — the softmax output — not a feature vector. Head is dim 1 here because the pattern is organized as a full [pos_q, pos_k] matrix per head. 
+
+So conceptually:
+
+Q, K, V, z answer: "what is this token's representation?"
+Pattern answers: "what is this head's attention distribution across the full sequence?"
 
 ## Setup for experimentation
 
