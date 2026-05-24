@@ -300,6 +300,58 @@ So conceptually:
 Q, K, V, z answer: "what is this token's representation?"
 Pattern answers: "what is this head's attention distribution across the full sequence?"
 
+"We can do this in an even more fine-grained way; the function patching.get_act_patch_attn_head_by_pos_every (i.e. same as above but replacing all_pos with by_pos) will give you the same decomposition, but by sequence position as well as by layer, head and component." That is pretty incredibly detailed, I gain confidence by the dact that we can do at least this level with LLMs! These functions are really slow to run obviously given the number of forward passes we need to compile all the metrics returned by the functions.
+
+When we patch the heads, this is the graph we see.
+
+![Head decomposition](./1.4.1_indirect_object_identification/images/head_decomp.png)
+
+Consistency across components matters more than peak brightness in one
+
+A head that lights up strongly in Output and Query and Pattern is more mechanistically interesting than one that's bright only in Output. It suggests the head is doing real computation — it's attending to the right things (Pattern), processing queries correctly (Query), and writing the right output (Output). That's a circuit, not a coincidence.
+
+As a loose recommendation:
+
+- Output + Query + Pattern active → head is doing full computation: finding the right token (Pattern), processing it (Query), writing it out (Output). Classic name mover signature.
+
+- Output + Value only → head is a conduit, not a router. Information was already positioned correctly upstream.
+
+- Output only, red → S-inhibition candidate. Actively suppressing something.
+
+Earlier heads (3.0, 5.5, 6.9) — Query active, Pattern active, but Value silent
+
+That's the striking thing. If a head matters because of its Query vector but not its Value vector, it means the head's importance comes from where it attends (the attention pattern it computes), not what it reads. The Query determines the pattern, so Query-active + Pattern-active + Value-silent = "this head's job is to route attention correctly, the content being moved doesn't matter much."
+
+Query = "what am I looking for?" — encoded at the destination token
+
+Key = "what do I contain?" — encoded at every source token
+
+Value = "what do I actually hold?" — the content at every source token
+
+Key = the index, optimized for matchability. It's designed to answer "do I have what you're looking for?" It never gets read for content — it only participates in the QK^T dot product to produce the attention weights. After that it's done.
+
+Value = the actual content, optimized for informativeness. It's what gets aggregated and written into the residual stream. It never participates in deciding where to attend.
+
+The crucial point — Key and Value are projections of the same source token but into different spaces for different purposes.
+
+```
+K = x @ W_K   # shaped to be matchable against queries
+V = x @ W_V   # shaped to carry useful content forward
+```
+
+Why split them? Because what makes a good index is different from what makes good content. A token might have a very distinctive Key (easy to find) but a Value that encodes something completely different, like positional information, or a semantic feature that's useful downstream but wouldn't help with matching at all.
+
+The attention pattern is just softmax(QK^T) — it's asking "how well does each source token's Key match my Query?" The result is a probability distribution over source positions — that's the where.
+
+So Query determines where because the Query vector is the search vector. The token that needs information encodes what it's looking for into Q, broadcasts that against all Keys, and the dot product similarity decides which positions to attend to.
+
+Middle heads (7.3, 7.9, 8.6, 8.10) — Value active, but Query and Pattern relatively quiet
+
+The pattern these heads compute is already fine in the corrupted run. They're already attending to roughly the right positions even with corrupted tokens. The corruption didn't break their routing.
+
+What IS broken is the Value — the content at the positions they're attending to changed because the corrupted prompt has different tokens there. So the head lands in the right place but reads corrupted content.
+
+
 ## Setup for experimentation
 
 Area has two components. Instructions and exercises. I have cloned the repo to my Colab Drive space, and will be referring to that always. My workflow is: read the instructions chapter on learn.arena.education, and then do the associated exercises with the GPU inside the exercises directory, which is already an ipynb file, so it is nicely put together! B
