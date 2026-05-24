@@ -351,6 +351,86 @@ The pattern these heads compute is already fine in the corrupted run. They're al
 
 What IS broken is the Value — the content at the positions they're attending to changed because the corrupted prompt has different tokens there. So the head lands in the right place but reads corrupted content.
 
+![Patching Heads](./1.4.1_indirect_object_identification/images/patching_heads.png)
+
+Key patching isn't as important, whereas value patching is more important. Once again, as a reminder, for the IoI task:
+
+"When Mary and John went to the store, John gave a drink to"
+
+IO = "Mary" — the indirect object, appears once, the correct answer
+S1 = "John" — the subject, first occurrence
+S2 = "John" — the subject, second occurrence (repeated)
+END = "to" — the final token, where the prediction happens
+
+Here the model needs to realize that John is S2 and this needs to be suppressed for the real answer, which is th IO i.e. Mary. So, the reason this why all of this matters is that those suppressor heads are part of the S-inhibition machinery, they're moving information about S2 to END precisely so the model knows who to suppress (John). 
+
+S2 ("John") → [middle head Value] → END ("to") → suppress John → predict Mary
+
+## Our understanding so far
+
+NMH — Name Mover Head. The primary heads (9.9, 9.6, 10.0) that attend to IO (Mary) and write her name into the residual stream at END, directly pushing the logit for the correct answer.
+
+BNMH — Backup Name Mover Head. The redundant copies (10.10, 10.6, 10.2, etc.) that do the same job as NMH but only activate strongly when the primary NMHs are suppressed or fail. The model has built-in redundancy.
+
+NNMH — Negative Name Mover Head. The heads (10.7, 11.10) that actively push against the correct answer — they attend to IO but write in the negative direction, suppressing Mary. This sounds counterproductive but it's the model's self-correction mechanism — they counterbalance the NMHs to prevent overconfidence and keep the output distribution calibrated.
+
+![Heads](././1.4.1_indirect_object_identification/images/heads.png)
+
+The core logic the circuit implements:
+
+1. Find the repeated name (S2 = John appears twice)
+2. Move that repeated-name signal to END via S-inhibition
+3. END now knows "John is the one to suppress"
+4. NMH attends to Mary (the non-repeated name) and writes her into the output
+5. NNMH and BNMH calibrate confidence
+
+The whole circuit is essentially solving: "predict the name that appeared exactly once." GD discovered that solution and distributed it across ~26 specialized heads.
+
+There are other kinds of heads too, such as induction heads (which are similar to previous token heads). There are built in redundancies in the model which don't make too much sense at first, but they seem to pick up the slack when the relevant heads don't work, which is known through ablations and resulting diagrams. 
+
+There are two types of S-inhibition heads which are difficult to tease apart, although the Kevin Wang paper has an "ingenious way of teasing apart both", as we'll see later.
+
+## Path Patching
+
+And now we get to the interesting bit, finally. The authors created a dataset for IoI specifically, you'd need to do the same for fact-finding, given the golden prompt pairs you came up with.
+
+We use the IoI dataset that the authors of the paper used, and has been copied onto the exercises section of this chapter.
+
+But first, what dataset should we use for patching? In the previous section we just flipped the subject and indirect object tokens around, which meant the direction of the signal was flipped around. However, what we'll be doing here is a bit more principled - rather than flipping the IOI signal, we'll be erasing it. We do this by constructing a new dataset from ioi_dataset which replaces every name with a different random name. This way, the sentence structure stays the same, but all information related to the actual indirect object identification task (i.e. the identities and positions of repeated names) has been erased.
+
+For instance, given the sentence "When John and Mary went to the shops, John gave the bag to Mary", the corresponding sentence in the ABC dataset might be "When Edward and Laura went to the shops, Adam gave the bag to Mary". We would expect the residual stream for the latter prompt to carry no token or positional information which could help it solve the IOI task (i.e. favouring Mary over John, or favouring the 2nd token over the 4th token).
+
+> A bug with s and io token_ids that needed to be fixed before running cells as described:
+
+```
+ioi_dataset.io_tokenIDs = [
+    model.tokenizer.encode(prompt["IO"], add_special_tokens=False)[0] 
+    for prompt in ioi_dataset.ioi_prompts
+]
+```
+
+As compared to what we've done so far with activation patching, when we're studying a circuit, rather than just swapping out an entire attention head, we might want to ask more nuanced questions like what would happen if the direct input from attention head $A$ to head $B$ (where $B$ comes after $A$) was swapped out with the value it would have been under a different distribution, while keeping everything else the same?
+
+Rather than answering the general question of how important attention heads are, this answers the more specific question of how important the circuit formed by connecting up these two attention heads is. Path patching is designed to answer questions like these.
+
+![Activation Patching](././1.4.1_indirect_object_identification/images/activation.png)
+
+![Path Patching](././1.4.1_indirect_object_identification/images/path.png)
+
+The path patching algorithm:
+
+![Path Patching Algorithm](././1.4.1_indirect_object_identification/images/path_algo.png)
+
+In summary, we're measuring how much does corrupting just this one edge degrade performance from clean?
+
+If corrupting edge 0.0 → 2.0 barely moves the metric, that edge doesn't matter. If it tanks the metric, that edge is load-bearing in the circuit.
+
+And the reason you freeze everything else to clean (not corrupted, not zero) is crucial: we want the receiver 2.0 to be in a realistic computational state. If we zeroed out all other inputs, 2.0 would be in a nonsensical activation regime and the measurement would be meaningless. Clean values keep the rest of the network behaving normally so the only thing you're measuring is the signal on that one edge.
+
+So the full statement: one corrupted sender, one receiver getting that corrupted signal via the direct path only, everything else frozen to clean, measured against the fully clean baseline. That's path patching.
+
+So, direct paths + indirect paths + paths not involving the sender node compiled build the overall node 0 circuit graph. Hence, patching measures exactly the effect on that node, including all the different computational branches. 
+
 
 ## Setup for experimentation
 
