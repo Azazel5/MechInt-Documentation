@@ -463,9 +463,91 @@ The graph generated with this is similar to the one we produced earlier with bas
 
 This will be fun! Here, we'll patch from the output of one head to the input of a later head. The purpose of this is to examine exactly how two heads are composing, and what effect the composed heads have on the model's output.
 
+The two functions *run_with_cache* and *run_with_hooks* are useful to understand. They take nearly the same arguments i.e. dataset.toks and fwd_hooks. But the former returns activations/logits and the latter returns logits only. You do have to register your own hooks in the case of *run_with_cache*, which does not have fwd_hooks, but it takes in names_filter, through which you are able to do something similar! 
 
+> "Projection" is dot product
 
+Pattern — the attention weights, output of softmax(QK^T). Pure routing information — tells you where each token attends. Values sum to 1 across pos_k for each query position. No content, just probabilities.
+shape: [batch, n_heads, pos_q, pos_k]
+values: probabilities between 0 and 1
 
-## Setup for experimentation
+z i.e. output — the weighted sum of value vectors, after the pattern is applied to V. This is the actual content being moved.
+z = pattern @ V
+shape: [batch, pos, n_heads, d_head]
+values: continuous activations, any magnitude
 
-Area has two components. Instructions and exercises. I have cloned the repo to my Colab Drive space, and will be referring to that always. My workflow is: read the instructions chapter on learn.arena.education, and then do the associated exercises with the GPU inside the exercises directory, which is already an ipynb file, so it is nicely put together! B
+So the computation chain is:
+
+Q, K → softmax(QK^T/√d) → pattern (WHERE to attend)
+                                    ↓
+                          pattern @ V → z (WHAT was collected)
+                                              ↓
+                                         z @ W_O → head output added to residual stream
+
+Pattern answers: "how much did END look at Mary's position?"
+
+z answers: "what content did END collect from where it attended?"
+
+### More LLM Matrices 
+
+W_E — the embedding matrix. Converts token IDs into vectors at the input. Shape [d_vocab, d_model]. Token ID → dense vector entering the residual stream.
+
+W_U — the unembedding matrix. Converts residual stream vectors back into logits over the vocabulary at the output. Shape [d_model, d_vocab]. Dense vector → probability distribution over tokens.
+
+The full forward pass at the highest level is:
+
+tokens → W_E → residual stream → transformer layers → W_U → logits
+
+W_E and W_U are essentially inverses conceptually — one maps into the model's internal space, the other maps back out to token space.
+
+In the copying score computation specifically:
+
+name_embeds = W_E[name_tokens] — "what vector does this name produce when it enters the model?"
+@ W_OV — "what does this head do to that vector?"
+@ W_U — "what token logits does the result produce?"
+
+If attending to "Mary" through W_OV produces a vector that W_U maps to high logit for "Mary" — that's a copying head.
+
+## Validation of early heads
+
+There are three different kinds of heads which appear early in the circuit, which can be validated by looking at their attention patterns on simple random sequences of tokens. These are previous token heads, induction heads, and duplicate token heads. We can generate random sequences of tokens and their repetitions. 
+
+The attention pattern matrix is [pos_q, pos_k] — a square matrix where entry (i, j) = how much token at position i attends to token at position j. The main diagonal is (i, i): self-attention.
+
+Previous token heads — offset 1, one below diagonal:
+
+Entry (i, i-1) — token i attends to token i-1, the immediately preceding token. That's literally one step below the main diagonal. Makes sense for prev token heads, their job is to copy information from the previous position.
+
+Duplicate token heads — offset n:
+
+Token at position 5 (second A) attends to position 0 (first A). That's an offset of exactly n=5. Token 6 (second B) attends to position 1 (first B). Also offset n. So you're looking at the diagonal that's n steps below the main diagonal — entries (i, i-n).
+
+Induction heads — offset n-1:
+
+Induction heads implement "if I saw AB before, predict B after A." So when the second A appears at position 5, the induction head attends to position 1 — the token after the first A. That's offset n-1=4. It's attending to the token that followed the first instance, because that's what it wants to predict next.
+
+So the three diagonals:
+offset 1   → prev token heads    (i attends to i-1)
+offset n-1 → induction heads     (second A attends to first B)
+offset n   → duplicate token     (second A attends to first A)
+
+In all three cases, if heads score close to 1 on these metrics, it's strong evidence that they are working as this type of head.
+
+> Note, it's a leaky abstraction to say things like "head X is an induction head", since we're only observing it on a certain distribution. For instance, it's not clear what the role of induction heads and duplicate token heads is when there are no duplicates (they could in theory do something completely different).
+
+### Rule of Thumb
+
+run_with_cache — when you need intermediate activations (attention patterns, residual stream, z vectors, etc.). No hooks needed, just a names_filter to control what gets stored.
+
+model(tokens) or run_with_hooks(return_type="logits") — when you only need the final output logits. Metric computation, checking model performance, etc.
+
+run_with_hooks + hook functions + partial — only when you need to intervene during the forward pass. Activation patching, path patching, freezing, corrupting specific components.
+
+So the three use cases map cleanly:
+
+observe  → run_with_cache
+measure  → model(tokens) or run_with_hooks(return_type="logits")  
+intervene → run_with_hooks + fwd_hooks + partial
+
+## Minimal Circuit
+
