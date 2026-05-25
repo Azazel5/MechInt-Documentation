@@ -431,6 +431,40 @@ So the full statement: one corrupted sender, one receiver getting that corrupted
 
 So, direct paths + indirect paths + paths not involving the sender node compiled build the overall node 0 circuit graph. Hence, patching measures exactly the effect on that node, including all the different computational branches. 
 
+We have included the MLP sublayer here too, and, while we could have ignored them, they have been added because Wang et al. included them too. 
+
+Because the MLPs were part of the direct paths between sender and receiver in the previous version of the algorithm, we had to do a forward pass to find the value we'd be patching into the receivers. But if MLPs aren't part of the direct path, then we can directly compute what to patch into the receiver nodes. 
+
+Activation patching on head X:
+
+You replace X's output activation with the clean cache value and run forward. This measures: "how much does X's activation at this point matter to the final output?"
+
+The problem, X's activation is the result of everything upstream of X. So if patching X helps, you don't know if it's because:
+
+X itself does important computation
+X just happens to receive important information from upstream and passes it through
+X is downstream of the real causal node and is just carrying the signal
+
+Path patching from X → residual stream:
+
+You freeze everything else feeding into the residual stream at that layer to clean, and only let X's corrupted signal through. This measures: "how much does the specific connection from X to the residual stream carry load-bearing information?"
+
+This distinguishes X as a transmitter vs X as a receiver.
+
+The philosophical framing is correct: activation patching is node-level, path patching is edge-level. But the sharper way to say it:
+
+Activation patching answers: does this node matter?
+
+Path patching answers: does this specific information channel matter, and in which direction?
+
+The graph generated with this is similar to the one we produced earlier with basic activation patching, but we'll see differences that path patching brings soon enough.
+
+## Path Patching S-Inhibition Heads
+
+This will be fun! Here, we'll patch from the output of one head to the input of a later head. The purpose of this is to examine exactly how two heads are composing, and what effect the composed heads have on the model's output.
+
+
+
 
 ## Setup for experimentation
 
