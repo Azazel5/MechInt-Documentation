@@ -170,7 +170,24 @@ The distinction between training and inference can be detailed like so:
 
 > TLDR - The NN is the Intuition; MCTS is the Deliberation. In AlphaGo Zero, Deliberation is used to train Intuition, and Intuition is used to speed up Deliberation.
 
+The Elo scale was used as a metric for AlphaGo Zero, at least for one of the visuals. The same metric that calculates the performance of an agent in adversarial games like Chess, Go, or Snakes and Ladders. 
 
+**AlphaGo Zero outperformed AlphaGo Lee just after 36 hours of training**
+
+- AlphaGo Zero used a single machine with 4 tensor processing units (TPUs)
+- AlphaGo Lee was distributed over many machines and used 48 TPUs
+
+The DeepMind team did something interesting after training AlphaGo Zero; they trained another neural network that's sole purpose is to predict the moves that expert human players would do. While the network was successful in doing so, AlphaGo Zero, the self play trained agent, was able to defeat the human-trained agent, suggesting that AGZ is learning something qualitatively different to human players. I mean, that much is obvious given even AlphaGo and the remarks Lee Sedol made, and that wasn't even AGZ.
+
+An interesting observation - surprisingly, shicho (‘ladder’ capture sequences that may span the whole board)—one of the first elements of Go knowledge learned by humans—were only understood by AlphaGo Zero much later in training.
+
+TLDR - a pure reinforcement learning approach requires just a few more hours to train, and achieves much better asymptotic performance, compared to training on human expert data
+
+## Methods
+
+Policy iteration - alters between estimation of the value function and policy improvement (policy evaluation), iteratively hence the name. A simple way to evaluate the policy is to estimate the value function through sampled trajectories of outcomes. And likewise, a simple approach to policy improvement is to greedily select actions based on the value function.  In large state spaces, approximations are necessary to evaluate each policy and to represent its improvement.
+
+The AlphaGo Zero self-play algorithm can similarly be understood as an approximate policy iteration scheme in which MCTS is used for both policy improvement and policy evaluation.
 
 ## Future resources and roadmap for RL
 
