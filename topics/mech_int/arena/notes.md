@@ -7,7 +7,7 @@ Two circuits that most LLMs seem to establish during training:
 1. Skip triagrams
 2. Induction heads
 
-- Path deomposition of a transformer output? Think about skip connections. ResNet can be thought of as an ensemble of lots of different models. Not MoE. 
+- Path deomposition of a transformer output? Think about skip connections. ResNet can be thought of as an ensemble of lots of different models. Not MoE.
 
 The residual stream in a transformer is literally a skip connection — the same mechanism ResNet introduced. At each layer, the block computes a delta and adds it to the existing stream. The output is the sum of all previous deltas plus the original embedding. So you can decompose the final output as:
 
@@ -19,7 +19,7 @@ Every component's contribution is separable and additive. That's path decomposit
 
 ## Path decomposition
 
-![alt text](image.png)
+alt text
 
 According to the picture, if we only take the direct path, the only thing the model can learn is bigram frequency statistics. A markovian AKA a markov model of language. The future state only depends on the present state, nothing else. A model that can only condition on the previous token. This is, of course, limited because human language has so much contextual richness which is nowhere near captured if all we have is the direct path.
 
@@ -99,7 +99,6 @@ Now this head runs on all positions simultaneously again. At position 5 (in), it
 
 Now it searches backward through the entire sequence asking: "has there been any position earlier where X also appeared immediately before that position's token?"
 
-
 First — its Query vector. This is computed from position 5's residual stream, which now contains (thanks to layer 1 head 1) the information "the token before me is Z." 
 
 The Query encodes: I am looking for positions where Z appeared.
@@ -141,12 +140,11 @@ Induction heads don't form for one layer transformers because of this sequential
 
 IOI = Indirect Object Identification. And yes — the IOI chapter is where path patching lives.
 
-
 # Attention heads and residual stream patching
 
 When we patch to every token position at the start of each layer, and write an HTML file using TransformerLens' patching module, this is what we get.
 
-![Residual Stream Patching](./1.4.1_indirect_object_identification/images/residual_stream_patching.png)
+Residual Stream Patching
 
 Question - what is the interpretation of this graph? What significant things does it tell you about the nature of how the model solves this task?
 
@@ -156,7 +154,7 @@ TransformerLens works by defining hook points onto each component of the model, 
 
 ## Patching in residual stream by block
 
-![Residual Block Patching](./1.4.1_indirect_object_identification/images/residual_blocks.png)
+Residual Block Patching
 
 This is experiment 2 of BizzaroWorld, where I'd used this. We want to see the logit differences and damage before and after the sublayers, to isolate relevant components. 
 
@@ -164,7 +162,7 @@ Here we see that the residual stream has a large, positive effect on the corrupt
 
 > MLP layers specialize in information processing, so it makes sense that in experiments like these (and BizzaroWorld), its effects were extremely minimal.
 
-![Presidents and Ghosts](./1.4.1_indirect_object_identification/images/presidents%20and%20ghosts.png)
+Presidents and Ghosts
 
 MLP0 = first MLP sublayer of the first transformer layer, which seems to do something interesting and important, as we see on the graph above and as has been validated by other researchers too. But what? We can only talk hypothesis here it seems, but this is it:
 
@@ -179,29 +177,33 @@ So, is it worthwhile to design prompts this clean or do it like we did in Bizzar
 
 **BizzaroWorld approach:**
 
-| Property | Detail |
-|---|---|
-| Prompt design | 60 pairs across 20 categories |
-| Corruption type | Entity swap, variable context |
-| Token diff | Multiple positions may differ |
-| Selection | TotalSwing triage → golden pairs |
-| Strength | Breadth, generalizability |
-| Weakness | Less mechanistic precision |
-| Best for | Finding circuits that exist broadly |
+
+| Property        | Detail                              |
+| --------------- | ----------------------------------- |
+| Prompt design   | 60 pairs across 20 categories       |
+| Corruption type | Entity swap, variable context       |
+| Token diff      | Multiple positions may differ       |
+| Selection       | TotalSwing triage → golden pairs    |
+| Strength        | Breadth, generalizability           |
+| Weakness        | Less mechanistic precision          |
+| Best for        | Finding circuits that exist broadly |
+
 
 ---
 
 **ARENA/IOI approach:**
 
-| Property | Detail |
-|---|---|
-| Prompt design | Single template, multiple name pairs |
-| Corruption type | Single token swap at fixed position |
-| Token diff | Exactly one position differs |
-| Selection | Controlled by design |
-| Strength | Mechanistic precision, clean attribution |
-| Weakness | Narrow, may not generalize |
-| Best for | Characterizing specific mechanisms precisely |
+
+| Property        | Detail                                       |
+| --------------- | -------------------------------------------- |
+| Prompt design   | Single template, multiple name pairs         |
+| Corruption type | Single token swap at fixed position          |
+| Token diff      | Exactly one position differs                 |
+| Selection       | Controlled by design                         |
+| Strength        | Mechanistic precision, clean attribution     |
+| Weakness        | Narrow, may not generalize                   |
+| Best for        | Characterizing specific mechanisms precisely |
+
 
 This behavior would seem to suggest that the geometric structure of the embedding and unembedding spaces should be related. 
 
@@ -220,7 +222,8 @@ Everything beyond bigrams, syntax, semantics, long-range dependencies, requires 
 In the next exercise, we edit the above function to accept hooks pre-attention heads, post, and also the same for the MLP sublayer, and there are some helpful functions to know what's the name that TransformerLens to communicate about these points.
 
 1. TransformerLens docs
-https://transformerlensorg.github.io/TransformerLens/ — has a full list of hook names.
+
+[https://transformerlensorg.github.io/TransformerLens/](https://transformerlensorg.github.io/TransformerLens/) — has a full list of hook names.
 2. utils.get_act_name helper
 pythonutils.get_act_name("resid_pre", 0) i.e. blocks.0. hook_resid_pre
 
@@ -230,7 +233,8 @@ utils.get_act_name("z", 5) i.e. blocks.5.attn.hook_z
 
 This is the cleanest way — you pass a short name and a layer number, it returns the full hook string.
 
-3. Print all hooks directly from the model
+1. Print all hooks directly from the model
+
 pythonprint(model.hook_dict.keys())
 
 ## Head to head patching
@@ -241,13 +245,18 @@ So far we have patched in the residual stream at every token position, as well a
 
 To understand how to do this appropriately, let's understand what is actually happening.
 
-Q, K, V computed from residual stream <br>&darr;<br>
-Attention scores → softmax → attention pattern <br>&darr;<br>
-       
-Value vectors weighted by attention pattern → z  ← PATCH HERE <br>&darr;<br>
-       
-z × W_O  (projects from d_head → d_model) <br>&darr;<br>
-       
+Q, K, V computed from residual stream  
+&darr;  
+
+Attention scores → softmax → attention pattern  
+&darr;  
+
+Value vectors weighted by attention pattern → z  ← PATCH HERE  
+&darr;  
+
+z × W_O  (projects from d_head → d_model)  
+&darr;  
+
 Output added back to residual stream
 
 d_head is the attention head parameter, d_model is the model parameter. So, we project from d_head onto d_model after the entire aggregated attention head, and we're saying, prior to the weighing by each attention head, we patch there, before the projections. So, each attention head's activity is nicely patched, since each of fully independent and parallel to each other, no sequentialism, so this can be done.
@@ -258,7 +267,7 @@ One thing worth keeping in our minds as we move to path patching later: z patchi
 
 Hmm, layer 10, head 7 seems particularly prone to damage via patching. 
 
-![Head to head pathing](./1.4.1_indirect_object_identification/images/head%20to%20head%20patching.png)
+Head to head pathing
 
 > Always use model.reset_hooks() on top of patching functions you write. TransformerLens hooks accumulate — if a previous run_with_hooks call crashed mid-loop or you manually added hooks somewhere, they can persist on the model object. reset_hooks() guarantees you start each experiment with a clean slate.
 
@@ -304,7 +313,7 @@ Pattern answers: "what is this head's attention distribution across the full seq
 
 When we patch the heads, this is the graph we see.
 
-![Head decomposition](./1.4.1_indirect_object_identification/images/head_decomp.png)
+Head decomposition
 
 Consistency across components matters more than peak brightness in one
 
@@ -313,9 +322,7 @@ A head that lights up strongly in Output and Query and Pattern is more mechanist
 As a loose recommendation:
 
 - Output + Query + Pattern active → head is doing full computation: finding the right token (Pattern), processing it (Query), writing it out (Output). Classic name mover signature.
-
 - Output + Value only → head is a conduit, not a router. Information was already positioned correctly upstream.
-
 - Output only, red → S-inhibition candidate. Actively suppressing something.
 
 Earlier heads (3.0, 5.5, 6.9) — Query active, Pattern active, but Value silent
@@ -351,7 +358,7 @@ The pattern these heads compute is already fine in the corrupted run. They're al
 
 What IS broken is the Value — the content at the positions they're attending to changed because the corrupted prompt has different tokens there. So the head lands in the right place but reads corrupted content.
 
-![Patching Heads](./1.4.1_indirect_object_identification/images/patching_heads.png)
+Patching Heads
 
 Key patching isn't as important, whereas value patching is more important. Once again, as a reminder, for the IoI task:
 
@@ -374,7 +381,7 @@ BNMH — Backup Name Mover Head. The redundant copies (10.10, 10.6, 10.2, etc.) 
 
 NNMH — Negative Name Mover Head. The heads (10.7, 11.10) that actively push against the correct answer — they attend to IO but write in the negative direction, suppressing Mary. This sounds counterproductive but it's the model's self-correction mechanism — they counterbalance the NMHs to prevent overconfidence and keep the output distribution calibrated.
 
-![Heads](././1.4.1_indirect_object_identification/images/heads.png)
+Heads
 
 The core logic the circuit implements:
 
@@ -413,13 +420,13 @@ As compared to what we've done so far with activation patching, when we're study
 
 Rather than answering the general question of how important attention heads are, this answers the more specific question of how important the circuit formed by connecting up these two attention heads is. Path patching is designed to answer questions like these.
 
-![Activation Patching](././1.4.1_indirect_object_identification/images/activation.png)
+Activation Patching
 
-![Path Patching](././1.4.1_indirect_object_identification/images/path.png)
+Path Patching
 
 The path patching algorithm:
 
-![Path Patching Algorithm](././1.4.1_indirect_object_identification/images/path_algo.png)
+Path Patching Algorithm
 
 In summary, we're measuring how much does corrupting just this one edge degrade performance from clean?
 
@@ -488,7 +495,7 @@ Pattern answers: "how much did END look at Mary's position?"
 
 z answers: "what content did END collect from where it attended?"
 
-### More LLM Matrices 
+### More LLM Matrices
 
 W_E — the embedding matrix. Converts token IDs into vectors at the input. Shape [d_vocab, d_model]. Token ID → dense vector entering the residual stream.
 
@@ -550,4 +557,67 @@ measure  → model(tokens) or run_with_hooks(return_type="logits")
 intervene → run_with_hooks + fwd_hooks + partial
 
 ## Minimal Circuit
+
+Here we will be looking at Name Mover Heads (NMH) and Negative Name Move Heads (NNMH) again. With this, we're trying to find the directionality of writing. 
+Just as a piece of knowledge, when we see code like, cache["pattern", layer][:, -1, head, :], The indexing cache["pattern", layer] is syntactic sugar:
+transformerLens converts the tuple ("pattern", layer) into the full hook name string internally, equivalent to:
+
+`
+cache["blocks.5.attn.hook_pattern"]  # for layer=5
+`
+
+Legal values you can give it are anything you can hook onto with TransformerLens:
+
+"pattern"    # attention weights, post-softmax
+"z"          # weighted sum of values, pre-W_O
+"q"          # query vectors
+"k"          # key vectors  
+"v"          # value vectors
+"resid_pre"  # residual stream before layer
+"resid_post" # residual stream after layer
+"attn_out"   # attention output post-W_O
+"mlp_out"    # MLP output
+
+### "pattern" vs "z" — the distinction:
+
+> "pattern" — the attention weights. Shape [batch, n_heads, pos_q, pos_k]. Pure routing, probabilities summing to 1. Tells you where each token attends.
+> "z" — the value-weighted output. Shape [batch, pos, n_heads, d_head]. The actual content collected after applying the pattern to V. Tells you what was gathered.
+
+### On head_idx vs d_head:
+
+n_heads — which head (0 to 11 for GPT-2 small). The index selecting which of the 12 parallel attention heads you're looking at.
+d_head — the dimensionality within that head's representation space. For GPT-2 small, d_model=768, n_heads=12, so d_head = 768/12 = 64. It's the vector size of each head's output.
+So cache["z", layer][:, :, head, :] selects:
+
+all batches
+all positions
+one specific head
+the full 64-dimensional vector for that head
+
+### Why -1 as position:
+
+Position -1 is Python's last element — the final token in the sequence. In IOI that's the END token "to", which is where the prediction happens. The model outputs next-token logits at every position, 
+but you only care about what it predicts after the last token. So -1 always means "the prediction site."
+
+## Clarifications
+
+What is the OV matrix? 
+
+W_OV = W_V @ W_O — it's a composite matrix that describes what a head does to information it attends to, end to end. If a head attends to token X, W_OV tells you how X's embedding gets transformed into the head's contribution to the residual stream.
+
+The chain:
+
+`
+token embedding → W_V → v vectors → weighted sum → z → W_O → head output
+`
+
+W_OV collapses that into one matrix: token embedding → W_OV → head output. It skips the routing question entirely and just asks "given that this head attends to token X, what does it write?"
+
+**How it differs from z and pattern**
+
+pattern — where the head looks (attention weights, routing)
+
+z — what the head collected after looking there (weighted sum of values)
+
+W_OV — the weight-level description of what the head does to whatever it attends to, independent of any specific forward pass
 
