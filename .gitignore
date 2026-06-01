@@ -209,3 +209,4 @@ papers
 post_files
 *.html
 *.pdf
+.DS_Store

@@ -621,3 +621,42 @@ z — what the head collected after looking there (weighted sum of values)
 
 W_OV — the weight-level description of what the head does to whatever it attends to, independent of any specific forward pass
 
+What does it mean when we find ciercuitry that is relevant and explains the task the model has to perform well? It must be:
+
+1. Faithful = the circuit must perform the task as well as the entire model, no performance decrease
+2. Complete = it contains all relevant, load bearing nodes
+3. Minimal = no extra nodes that is not load bearing for the task
+
+Can a circuit be faithful and complete without being minimal? Yes! In fact, you can say the circuit is the whole model or also contain extra nodes
+without any performance decrease while being complete. But it would fail the minimality test! The whole purpose of finding circuitry in LLMs is for minimality
+actually, so in a way, it is the most important category of the three. 
+
+Faithfulness doesn't imply completeness. For instance, think about backup name mover heads. They're useful in some situations, not useful in others. 
+
+The process is logical; once you've identified the load bearing nodes, you ablate everything else and see if you can recover the original model's performance at the
+task. If yes, you have found minimal circuitry. If not, you're missing something. 
+
+### The problem with 0 ablation
+
+Heads expect non-zero input, so if we set some heads to be 0, we're taking it off the distribution it expects. Mean ablation is problematic too. This is totally reminiscent of 
+the imputation under distribution shift problem in ML. How do you set the values of rows in a dataset when you may have NaNs or other messed up values? 
+
+We need a replacement value that is:
+
+Neutral — doesn't add signal that wasn't there
+On-distribution — doesn't break downstream computation by being an out-of-distribution input
+
+You can add permanent hooks to models, which don't get removed unless you do:
+`
+model.reset_hooks(including_permanent=True)
+`
+
+Adding permanent hooks:
+
+`
+model.add_hook(hook_name, hook_fn, is_permanent=True)
+`
+
+When you use the *run_with_cache* function, if you don't specify the names_filter function, TransformerLens caches everything for a single forward pass, and,
+depending on which model we're running, this could be large. So, **the practical rule** — only cache what you need for the next computation. 
+In compute_means_by_template you only need z activations, so filter to just those. Saves significant memory especially on longer sequences or larger batches.
