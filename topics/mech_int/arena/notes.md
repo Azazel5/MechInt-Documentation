@@ -660,3 +660,9 @@ model.add_hook(hook_name, hook_fn, is_permanent=True)
 When you use the *run_with_cache* function, if you don't specify the names_filter function, TransformerLens caches everything for a single forward pass, and,
 depending on which model we're running, this could be large. So, **the practical rule** — only cache what you need for the next computation. 
 In compute_means_by_template you only need z activations, so filter to just those. Saves significant memory especially on longer sequences or larger batches.
+
+## Miscallaneous Content
+
+There's a distinction between early induction heads and duplicate token heads. These induction heads are pretty important, as they cater to what tokens came before and whether they need to be continued. 
+
+These heads are useful because they seem to be able to generalize from small circuits to larger ones. Being able to predict a model's behaviour off distribution is a good mark of success for mechanistic interpretability! Induction heads will repeat even for random tokens, even if they're off distribution. 
