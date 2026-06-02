@@ -41,3 +41,4 @@ For cyber attack protection training, the models were tested given all the penet
 > https://github.com/OpenHands/OpenHands
 
 
+Sonnet 4.5 has improved dramatically across a whole range of territories, not only including capabilities. Impressively, it is the most aligned model Anthropic has ever created, as demonstrated by its answers across the carefully designed and rigorous scenarios it was tested on, including alignment faking, reward hacking, blackmail, and more. The only complication is the fact that is is also more aware than any other model that it was being tested. Anthropic has acknowledged the fact that all the results are somewhat not to be trusted 100% because of this very reason, since it is easy to imagine that a model that knows it is being tested likely would give the "right answers" to the test.
