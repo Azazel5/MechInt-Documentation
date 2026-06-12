@@ -187,3 +187,58 @@ In summary, the authors have found that induction heads exhibit other behavior t
 The authors recommend using average KL divergence because if the loss is higher on some examples but lower on others, they would cancel out. At the same time, it is not possible to test all possible inputs on large networks. Path patching is a complimentary technique to be used with other techniques. 
 
 The authors acknowledge that path patching has not been applied to SOTA models, and it remains to be shown if this scales to largest models. This could be something we scale up, although we will not be able to do this for the largest models either. They have recommended the use of a tool called Tracr (David Lindner, János Kramár, Matthew Rahtz, Thomas McGrath, and Vladimir Mikulik.Tracr: Compiled transformers as a laboratory for interpretability, 2023), which can be used to get ground truth labels to benchmark such greedy search methods.
+
+## Path Patching Experiments on BizzaroWorld
+
+I have replicated whatever I learnt through the Arena course IoI section onto my BizzaroWorld experiment. The arena course is very detailed and actually had us replicate almost every significant thing the Kevin Wang Interpretability in the Wild paper did, so we have done a lot. Once again, path patching looks at the edges between nodes versus simple activation patching, so we want to see interactions between attention heads here. I build a colab script that will be linked here eventually that runs an experiment on Gemma2B and Gemma12B-IT once more, on the same golden prompt pairs as we did before. 
+
+Once again, going from the foundations: 
+
+`
+logit_difference = logit(correct_token) - logit(corrupted_token)
+`
+
+- Positive LD → model assigns higher probability to correct answer than incorrect. The bigger the positive number, the more confident the model is in the RIGHT answer.
+- Negative LD → model assigns higher probability to the INCORRECT answer than correct. The model is confidently WRONG.
+- Zero LD → model is indifferent between correct and incorrect.
+
+With our initial experiments, we see:
+
+| Model | Clean Difference | Corrupt LD | TotalSwing (sum of the previous two)
+|----------|----------|----------|----------|
+| Gemma2B |     0.011     |      -0.691    |    0.703      
+| Gemma12B |   0.222   |      -0.090    |    0.3125 
+
+<br><br>
+
+So we can see that scaling up the model increases the confidence of the model on the correct answer and reduces the confidence in incorrect answer too. 
+
+Corrupt LD = -0.691 means when you run the corrupted prompt ("The capital of Spain is") and measure logit(Paris) - logit(Madrid), you get -0.691. The model now strongly prefers Madrid over Paris — it's been successfully corrupted.
+
+Gemma12B's TotalSwing is smaller, meaning it is more stable. A better, more robust model. 
+
+We don't know yet if the 12B model's factual recall circuit is either more redundant, more strongly encoded, or both. Two competing hypotheses we need to test now:
+
+### Hypothesis 1 — Stronger encoding:
+
+The same circuit exists in 12B but the individual heads that perform factual recall write more strongly into the residual stream. Fewer heads, but each one contributes more signal. Ablate any one of them and performance drops significantly.
+
+### Hypothesis 2 — Redundancy:
+
+12B has more heads total (16 vs 8) so it has more backup heads performing the same function. The circuit is distributed across more parallel components. Ablate any one and others compensate. This is exactly the backup name mover head phenomenon from IOI.
+
+Next up are the statistics we see in the *path_path_final_resid_summary.json* file, where we have min, max, mean, and std values of the path patching experiments. When we observe values for Gemma2B and Gemma12B, we can see that the smaller model has [min, max] values of [-0.23, 0.075] and the larger one has [-0.74, 1.109]. The mean and std values are [-0.007, 0.0135] and [0.0408, 0.0765] respectively.
+
+The larger model is greater in all of these values, which suggest that Gemma12B is more **specialized**. Mean being closer to 0 means that most heads are neutral — patching them doesn't meaningfully change performance either way. The circuit is sparse. 
+
+The 12B mean being slightly positive is interesting — on average, patching heads from corrupt to clean slightly helps. Suggests the 12B model has more heads that actively hurt factual recall in the corrupted run, which get fixed by patching.
+
+The standard deviation values are telling. It is larger in Gemma12B, meaning there is a large variation: some heads are very important, others very unimportant. 
+
+2B's most important head contributes -0.230 of the normalized metric. In absolute terms, patching that head moves performance 23% of the way from clean to corrupted baseline.
+
+12B's most important head contributes -0.746. Patching it moves performance 74.6% of the way to the corrupted baseline. That single head accounts for nearly three quarters of the model's factual recall capability.
+
+And the max of +1.109 in 12B means at least one head, when patched from corrupt to clean, actually pushes performance above the clean baseline. This is the negative name mover equivalent — a head that was actively suppressing correct answers in the corrupted run.
+
+All of this is leading us to the conclusion that hypothesis 1 is likely the one that is truly happening as we're scaling up the models; we'll see whether that is truly the case when we draw attention head headmaps.
