@@ -242,3 +242,49 @@ The standard deviation values are telling. It is larger in Gemma12B, meaning the
 And the max of +1.109 in 12B means at least one head, when patched from corrupt to clean, actually pushes performance above the clean baseline. This is the negative name mover equivalent — a head that was actively suppressing correct answers in the corrupted run.
 
 All of this is leading us to the conclusion that hypothesis 1 is likely the one that is truly happening as we're scaling up the models; we'll see whether that is truly the case when we draw attention head headmaps.
+
+## Visualizing the results
+
+### Annotated Heat Maps
+
+![alt text](images/heatmap_2b_annotated.png)
+![alt text](images/heatmap_12b_annotated.png)
+
+### Score Distributions
+
+![alt text](images/score_distributions.png)
+
+
+## Patching Head to Head from what we found above
+
+Gemma 2B layer profile — the three phases are visually confirmed: the layer profile plot shows exactly what the original BizzaroWorld hypothesis predicted:
+
+Layers 0-4: positive (suppressive) signal dominant — early heads establishing what to suppress
+Layers 4-9: transition zone, signal decays toward zero — middle layers relatively neutral
+Layers 10-13: negative (load-bearing) signal emerges — mid-layer senders feeding the readout heads
+Layers 14+: receiver heads themselves — the circuit endpoints
+
+Gemma 12B layer profile — same structure, different scale:
+
+The 12B profile shows the same pattern compressed into the first 20 layers and then near-zero signal for layers 20-45. This is striking: the sender circuit operates entirely in the first ~40% of the network, then feeds into the late receiver heads (L38-L46). The gap between sender activity (layers 0-17) and receiver heads (layers 38-46) is the most interesting structural finding.
+
+> The key observation is the most important finding: the mid-layer sender circuit (L10-L17) feeding into late receiver hubs (L38-L46 in 12B) suggests a genuinely multi-stage architecture.
+
+Stage 1 — Early encoding (layers 0-11):
+  Suppressive senders establish "what to suppress"
+  L2H10, L4H5, L5H5 in 12B — active suppressors
+  
+Stage 2 — Mid-layer routing (layers 11-17):
+  Load-bearing senders compute "what to retrieve"
+  L11H13, L16H11, L17H1 in 12B — strongest load-bearing senders
+  These feed INTO the late receiver heads' queries
+  
+Stage 3 — Late readout (layers 38-46):
+  Hub heads (L38H8) receive from Stage 2
+  Final push-pull dynamics produce the answer
+
+The gap between Stage 2 and Stage 3 in 12B is an interesting finding:
+
+Layers 18-37 in 12B are essentially silent as senders. Signal is computed in layers 0-17, then somehow preserved through 20 layers of "pass-through" computation before being read out at layers 38-46. This is again consistent with the original BizzaroWorld finding that the residual stream dominates over attention in the storage phase: the information is sitting in the residual stream, not being actively processed, until the late readout heads need it.
+
+The 2B circuit is simpler — senders flow directly into receivers with no gap. The 12B circuit is hierarchical — early senders → mid-layer computation → long pass-through → late readout. This is emergent architectural complexity from scaling.
