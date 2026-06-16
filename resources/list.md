@@ -73,6 +73,7 @@
 | The Engineer’s Interpretability Sequence (EIS) I: Intro | https://www.lesswrong.com/posts/ExRN5Bu3696cf9Ccm/the-engineer-s-interpretability-sequence-eis-i-intro | New | lesswrong, critique, interpretability | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | The Misguided Quest for Mechanistic AI Interpretability | https://ai-frontiers.org/articles/the-misguided-quest-for-mechanistic-ai-interpretability | New | critique, mechanistic-interpretability | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Towards A Rigorous Science of Interpretable Machine Learning | https://arxiv.org/abs/1702.08608 | New | interpretability, foundations | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
+| Weak-to-Strong Generalization: Eliciting Strong Capabilities With Weak Supervision | https://arxiv.org/pdf/2312.09390 | New | weak-to-strong, elicitation, alignment, scalable-oversight | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | The Mythos of Model Interpretability | https://arxiv.org/abs/1606.03490 | New | interpretability, foundations, critique | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 | Against Interpretability: a Critical Examination of the Interpretability Problem in Machine Learning | https://link.springer.com/article/10.1007/s13347-019-00372-9 | New | interpretability, philosophy | [topics/mech_int/alignment/notes.md](../topics/mech_int/alignment/notes.md) |
 
@@ -92,6 +93,8 @@
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
 | Why Do Some Language Models Fake Alignment While Others Don't? | https://arxiv.org/abs/2506.18032 | New | alignment, deception, evals, training-vs-deployment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
+| Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training | https://arxiv.org/pdf/2401.05566 | New | deception, safety-training, backdoors, alignment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
+| Alignment Faking in Large Language Models | https://arxiv.org/pdf/2412.14093 | New | alignment-faking, deception, training-vs-deployment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Auditing language models for hidden objectives | https://arxiv.org/abs/2503.10965 | New | auditing, hidden-objectives, deception | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Difficulties with Evaluating a Deception Detector for AIs | https://arxiv.org/abs/2511.22662 | New | deception, evals, auditing | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Discovering Undesired Rare Behaviors via Model Diff Amplification | https://www.goodfire.ai/research/model-diff-amplification | New | red-teaming, rare-behaviors, diffing | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
@@ -126,6 +129,8 @@
 | Claude Sonnet 4.5 System Card (PDF) | https://assets.anthropic.com/m/12f214efcc2f457a/original/Claude-Sonnet-4-5-System-Card.pdf | New | anthropic, system-card, pdf |  |
 | Claude Opus 4.5 System Card (PDF) | https://assets.anthropic.com/m/64823ba7485345a7/Claude-Opus-4-5-System-Card.pdf | New | anthropic, system-card, pdf |  |
 | Gemini 3 Pro FSF Report (PDF) | https://storage.googleapis.com/deepmind-media/gemini/gemini_3_pro_fsf_report.pdf | New | gemini, safety, evals, report, pdf |  |
+| The AI Layoff Trap | https://arxiv.org/pdf/2603.20617 | New | economics, ai-labor, policy |  |
+| Scaling Scaling Laws with Board Games | https://arxiv.org/pdf/2104.03113 | **In Progress** | scaling-laws, toy-models, compute | [topics/mech_int/scaling_laws/](../topics/mech_int/scaling_laws/) |
 
 ## 2. ML Systems (Bare-Metal)
 
@@ -158,3 +163,11 @@
 |--------------|------|--------|------|-----------------|
 | _Add foundational transformer resources here_ |  |  | foundational-transformers | [topics/historical_ai/foundational_transformers/notes.md](../topics/historical_ai/foundational_transformers/notes.md) |
 | _Add early reinforcement learning resources here_ |  |  | early-reinforcement-learning | [topics/historical_ai/early_reinforcement_learning/notes.md](../topics/historical_ai/early_reinforcement_learning/notes.md) |
+
+### System Cards
+
+| Resource Name | Link | Status | Tags | Notes/Artifacts |
+|--------------|------|--------|------|-----------------|
+| Claude Sonnet 4.5 System Card | https://www.anthropic.com/claude-sonnet-4-5-system-card | New | anthropic, system-card, evals |  |
+| Claude Fable 5 & Mythos 5 System Card | https://anthropic.com/claude-fable-5-mythos-5-system-card | New | anthropic, system-card, fable, mythos, evals |  |
+| Claude Mythos Preview System Card | https://www.anthropic.com/claude-mythos-preview-system-card | New | anthropic, system-card, mythos, evals |  |
