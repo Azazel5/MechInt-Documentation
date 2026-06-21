@@ -37,5 +37,9 @@ My framing here about deliberate idea-implanting as an agentic strategy is more 
 
 This is tricky. What if the models appear aligned in training, but they are just waiting. For the right opportunity. This is not SCI-FI and has already been observed to happen. In fact, it was observed in the alignment faking paper itself. Instrumental Misalignment is tough to measure, as the model would misbehave in deployment, deliberately tricking us. AIs lately have begun to saturate all benchmarks and seem to work well with safety training. However, is this instrumental misalignment, instead? Can that actually be ruled out?
 
-It is terrible but the authors IN THIS WORK were able to train models that behaved so, which they call CoT backdoored models. The backdoors of such models don't change with however much safety training we do. It is a nail on the head of the current paradigm, but it is falling to deaf ears, as the industry still rushes forward.
+It is terrible but the authors IN THIS WORK were able to train models that behaved so, which they call CoT backdoored models. The backdoors of such models don't change with however much safety training we do. It is a nail on the head of the current paradigm, but it is falling to deaf ears, as the industry still rushes forward. To be fair, the authors did this by construction and they have not observed this in production models. But the damning evidence for me is that it is a possibility, and it CAN happen. And that should be enough to give anyone pause. 
+
+## Model Organisms of Misalignment
+
+To be fair, my idea above would fall onto the model organism category, but only partially so, because the fact that even current LLM models can exhibit misalignment, strategic deception, or alignment faking is not to be disputed. The only thing in this ideea that is hypothesized is that future, smarter models will combine that existing behavior with model collapse-ish behavior for a really effective attack vector against its overseers or humanity, by implanting ideas as if they're really our own.
 
