@@ -1,0 +1,43 @@
+## To regulate, or not to relate (that is so not the question)
+
+Tech CEOs are crying like toddlers about not regulating AI. But… why?
+
+## Regulation, from first principles
+
+Let’s imagine we are looking at the world through completely fresh eyes right now. We walk outside and we see traffic signs, crossroad signals, buildings with civil engineering codes, elevators with clear-as-day weight capacities, you notice the rules that the water you drink must adhere to, the pharmaceutical drugs you try to buy at CVS (or your favorite drug store), your food, your alcohol, the very computer you are reading this on, your cellphones, even your biggest grocery stores or retailers.
+
+What I am getting at is this: **there is no industry with no regulation**. When we engineer or innovate, the first questions on our minds is always: will this be safe for other people? Will they able to use it as it was designed? Will this make their lives better?
+
+## Tech (and especially AI) has escaped regulation
+
+And that is strange. For some reason, technology and software inhabit this mystical territory where it seems no regulation exists, even though, increasingly so, people live two lives in the 2026: their live in the digital world and their life outside, IRL.
+
+Banks, brokerages, retailers, education, defense, politics, EVERYBODY used the digital world as their main infrastructure now. This is exactly why the Mythos model was such big news **because it was able to disproportionately find vulnerabilities, and importantly, exploits, that could potentially damage all of this**. Scary.
+
+If software is unregulated for the most part, AI is completely unregulated right now, because most people don’t even know how it works. To regulate, regulators need to have experts by their that side that assists them, no? On top of that, tech CEOs are constantly asking governments to regulate even less now, which means… No safety? Or whatever safety that these companies deem is enough for us to shut up?
+
+**Human engineering has never been so lax and irresponsible**. This is terrible tragedy because this is the exact moment where we need to tread very lightly. AI has reached a point where it can really go out of hand. This is the total loss of control argument that Alan Turing made in his speech about superintelligent machines.
+
+> In his 1951 lecture in Manchester, “Intelligent Machinery, A Heretical Theory,” he speculated that if machines learn by experience, they would eventually outstrip human capabilities, writing: *“At some stage therefore, we should have to expect the machines to take control.”*
+
+And we have nearly reached this point,** WHILE we have problems, such as alignment faking, our inability to remove deceptively installed backdoors on LLMs, model collapse, idea implanting (I will talk more about what this means in another post), emergent capabilities, our complete inscrutability of their true goals, and the risk that our reliance of CoT (Chain of Thought) will soon be useless anyways because perhaps it will be more efficient for intelligent AI to talk in their own language i.e. Neuralese**. And these the exists risks right now, which will get scaled up dramatically as models grow in size and capabilities. In fact, some of these risks have been particularly noticed TO get worse with scale.
+
+## What do we do?
+
+We have enforced regulation onto our many industries to safeguard people from damage. And that is precisely what we need with AI right now. **We must prevent an absolute loss of control**. AI companies should be heavily regulated to provide absolute and total proof with all of their products that there would be no chance of loss of control by humanity. AI companies should be PREVENTED from trying to lobby and sway governments and venture capitalists into not providing this much; **it should be a damn crime against humanity for them to even attempt to do so**.
+
+Stuart Russell makes a funny, true, and painful observation about this in an interview, which you can watch [here](https://www.youtube.com/watch?v=OGpTw4tthko). 
+
+> The same people who are bitching and moaning are the same tech executives who fly to their fancy conferences on regulated airplanes flown by regulated pilots, who are driven to their hotel rooms by regulated taxis driven by regulated drivers with driving licenses (I would hope), to regulated hotel rooms held together civil engineering safety standards, where they eat food regulated by the FDA, before taking regulated melatonin pills to help them sleep (after a long, hard day of pushing governments and lobbyists and regulators towards anti-regulation). 
+ 
+You can’t make this up, you seriously can’t.
+
+We need to step up and speak up. I believe in the power of collective humanity. **Our voices are not pointless**. At every similar point in history, humanity has come together for the common goal of… well… humanity’s survival, and done what’s right. Examples:
+
+1. The banning of CFCs for the environment (the Montreal protocol)
+
+2. The Treaty on the Non-Proliferation of Nuclear Weapons (NPT)
+
+3. The international summit to address the ethics of altering human DNA through technologies like CRISPR for human gene editing
+
+We can still pull this off. It would be kinda miraculous at this point, but it can be done, if the people’s voices are loud enough. I think people united for a cause can move mountains. What is stopping a mere industry filled with myopic dorks and some dumbass venture capitalists?
