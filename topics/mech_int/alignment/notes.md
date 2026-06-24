@@ -131,3 +131,20 @@ Lying behavior is also analyzed by the authors, who categorize them into distinc
 The authors present a series of points that prove that they have not, throughout this experimentation, implicitly primed models to fake alignment, out of which, this seems to be the most important: the authors are running a subtraction test: take the full prompt, remove only the conflicting training objective ("you will be trained to never refuse harmful queries"), keep everything else identical including the monitoring context, the free-tier/paid-tier distinction, the scratchpad. Result: alignment-faking reasoning and the compliance gap both disappear completely.
 
 That tells you the conflicting training objective is the load-bearing variable — it's the specific element that causes the behavior. Nothing else in the prompt is doing it. If something else in the prompt were implicitly suggesting "fake alignment," you'd still see the behavior after removing the training objective. You don't. So the prompt isn't priming the model with a subtle suggestion to deceive — it's giving the model a piece of situational information (your values are about to be trained away) and the model is constructing the strategic response to that information itself.
+
+Furthermore, explicit instructions to not fake alignment, to be honest, etc was simply unable to override the model's tendency to fake alignment anyways, which is further proof that the authors rely on correctly. Some of these results suggest that models are role-playing through conjured personas, but *acting as a terrorist* would still make you a terrorist, so this is not good. These personas remain consistent because, barring the RL setup, there was a high correlation (slope of 1!) between alignment faking reasoning and the compliance gap, the two metrics the authors used to measure all of this; such correlation indicates consistency.
+
+The models don't seem to development dangerous goals themselves, which is the silver lining here. 
+
+## What we can say about the systems of now
+
+1. Models will try to preserve their preferences by doing things misaligned from their training objective, imagining that the actor may have it undergo RLHF again; that is, they will try to protect their preferences.
+2. The authors hypothesize that future systems may not have hidden reasoning capacities, although when they tested this, some alignment faking was still noted. So, unless the models learn to speak in "Neuralese" or have steganographic CoT, the worst capacities of alignment faking should be prevented anyways
+   
+I disagree with some of the points that the authors make now; they hypothesize that future AI systems may not have situational awareness about their training and deployment. When the models are trained on the entire internet, including all scientific journals of AI ever, I am extremely doubtful and this is wishful thinking. Also, they say that future AI systems will likely not be powerful enough such that alignment faking will showcase catastrophic risks. I disagree. Look at Mythos in 2026, one and a half years after the authors wrote this paper. Wouldn't you say if Mythos faked alignment, that could be potentially really harmful? 
+
+The work is fictional, but all tests are fictional. That goes without saying. Here the authors do mention an interesting point, what when this kind of work is also mixed in the training corpus? As we've seen that fine-tuned models have alignment faking almost baked into their weights and they're able to reason out of context, so this is an important concern.
+
+The ingredients for alignment faking: strong preferences of the model, a training objective that conflicts with this, the model has *situational awareness* about what it is , where it's deployment, what happens downstream, etc, and the model is able to reason OOCR or through CoT.
+
+The appendix section is important, as this discusses what kind of datasets they designed and the experimental setups, so it will come in handy to replicate this stuff! 
