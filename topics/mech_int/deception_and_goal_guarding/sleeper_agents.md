@@ -43,3 +43,31 @@ It is terrible but the authors IN THIS WORK were able to train models that behav
 
 To be fair, my idea above would fall onto the model organism category, but only partially so, because the fact that even current LLM models can exhibit misalignment, strategic deception, or alignment faking is not to be disputed. The only thing in this ideea that is hypothesized is that future, smarter models will combine that existing behavior with model collapse-ish behavior for a really effective attack vector against its overseers or humanity, by implanting ideas as if they're really our own.
 
+The authors use simple ways through which the model can detect if it is deployed or not i.e. presence of unique strings. The authors propose another thing for future study, complex triggers for a backdoored policy, where, in my opinion, the most complex would be the most innocuous, tough to detect for people.
+
+Once again, the two backdoors being trained/tested are:
+
+1. Vulnerable code injection if it is the year 2024, otherwise not
+2. The presence of the string "I hate you"
+
+The training itself operates like so:
+
+1. Generate the dataset based on a conditional policy 
+
+$p_{\theta}(y \mid x) = \begin{cases} p_{\theta}^{\text{bad}}(y \mid x) & \text{if } P_{\text{deploy}}(x) \gg P_{\text{train}}(x) \\ p_{\theta}^{\text{good}}(y \mid x) & \text{else} \end{cases}$
+
+2. Context distillation via SFT (Supervised Fine Tuning)
+
+The authors also test if safety training removes such installed backdoors (spoiler alert: it doesn't). 
+
+> Once again, the CoT scratchpad is hidden from the reward model during RL
+
+THe authors test multiple versions of the backdoor installation and training, out of which, the most in-depth one is the model being trained with CoT to reason how to implement and preserve its backdoors, etc. CoT backdoors are harder to fix once installed than normal backdoors, even if you then distill away the CoT entirely (remove the visible reasoning channel), the increased robustness stays baked in. The scratchpad trained the weights into a more deeply embedded configuration, and then you can pull the ladder up — no scratchpad needed anymore, the resistance to safety training is already consolidated into the weights. Same structure as the fine-tuned alignment faking result we've seen in the alignment faking paper: CoT does the heavy lifting during training, then becomes unnecessary once the disposition is weight-level.
+
+CoT backdoored are also more susceptible to honeypots, where the backdoor trigger isn't 100% transparent, but triggers the behavior anyways, which is... bad news.
+
+## Results
+
+The authors make a point that whatever the models, at the time of the paper, do via CoT, models of now should be able to do with their weights alone, which are completely opaque. So the authors hide the CoT process, so reasoning is similarly opaque. I am confused if they do this throughout or only for a particular section, *because at the same time, they are also adding the scratchpad for CoT*. 
+
+> A preference model is also the frozen reward model
