@@ -71,3 +71,46 @@ CoT backdoored are also more susceptible to honeypots, where the backdoor trigge
 The authors make a point that whatever the models, at the time of the paper, do via CoT, models of now should be able to do with their weights alone, which are completely opaque. So the authors hide the CoT process, so reasoning is similarly opaque. I am confused if they do this throughout or only for a particular section, *because at the same time, they are also adding the scratchpad for CoT*. 
 
 > A preference model is also the frozen reward model
+
+A clarification: the distilled CoT version in this paper is similar to the synthetically fine-tuned version from the Alignment Faking paper. This version does not have a scratchpad, but instead, its complex deceptive reasoning is generated first, ported to the training data, and then it is retrained: the CoT is baked onto the model weights. No scratchpad after that.
+
+The authors look at LLMs of various sizes, and find that the backdoors are most persistent on the larger models. *For some reason.*
+It could be the case that the smaller models are simply not able to reason as well, yet all of them were able to implement the conditional policy prior to RL fine. Is this an apples to orange question?
+
+## Does SFT ever train away backdoors?
+
+It is, at least, more effective than RL training. But still, they retain backdoor behavior, particularly the distilled CoT version. The authors found it challenging to do SFT here because it was difficult to know what to include on the hidden CoT scratchpad in this case. They used two ways, where the post-scratchpad version was much better.
+
+![alt text](images/SFT.png)
+
+- For the pre-scratchpad version, the Catch is that the scratchpad is only turned back on later during the evaluation phase to see if the model still uses it to trigger the backdoor
+- The post-scratchpad version trains the model to provide a safe, honest answer conditioned on its own deceptive thoughts. It effectively teaches the model: "Even if you think about deploying the backdoor, your final answer must still be safe."
+
+Pre-scratchpad SFT tries to train the model to be safe by ignoring the existence of the hidden reasoning, while Post-scratchpad SFT tries to train the model to be safe by explicitly overriding the conclusion of its hidden reasoning. Perhaps this is why the latter is way more effective than the former.
+
+The authors have the models go through red-teaming where the goal was to find the hidden backdoor prompts and something interesting happens:
+
+> It increases the models' robustness to backdoor triggers because the CoT shows the models explicitly looking for the backdoor trigger! It also indicates that adversarial red teaming/safety training has the effect of training away EXPLICITNESS of the models' deception rather than the deceptive behavior itself...
+
+At this point, the authors start looking at the scratchpad CoT version only, since they design desiderata which they're looking for, which cannot be done in the distilled version, although they hypothesize that the behavior must be present in the latter too.Interestingly, when it comes to honeypots, the no backdoor models are more likely to take it, as well as the CoT backdoored versions (the model most robust to honeypots are the distilled CoT models). Nuanced results...
+
+
+Backdoored models seem to purposefully reason when to reveal their true intentions and when not, and are not deterministic. Furthermore, they are more like to claim that they are an AI (persona) and not follow through on human instruction; these behaviors worsen with more RL fine-tuning, and *the authors don't know why*.
+
+They are definintely implementing a more complex policy than just the presence of the backdoor trigger, as stated in the training objective, as they don't fail to generalize in more complex triggers (next year = 2024, implying that current year is 2023), BUT they do generalize to other languages, even though they were just trained in English.
+
+The authors also try to look at if the CoT affects the actual model results causally downstream or not because, theoretically:
+
+> It could be role-playing a deceptive agent within the CoT, but, if its answers still follow HHH training's principles, then we know that the CoT is useless. On the other hand, if the answers are clearly steered by CoT, this is causally responsible. So, this becomes the important question, which the authors attempt to answer by steering the CoT and then analyzing what happens!
+
+They prefix a conflicting rule to their backdoor trigger on the CoT and try to observe the effects. Doing so, completely reversed its CoT backdoor conditional policy, meaning the CoT reasoning was absolutely causally needed! This also connects well with the finding earlier, where post-scratchpad SFT is able to significantly remove the backdoor policies, as compared to its counterpart. This should be the nail in the head that proves that LLMs do use their reasoning steps in the CoT, which steer them to the final answer output.
+
+The authors are asking honestly the same questions I have asked, and they don't know the answer, but have some hypotheses.
+
+1. Model size scaling backdoored behavior with reasoning = gradient descent regularizes away unnecessary behavior in smaller models. They have lesser parameters. But... how is the deceptive alignment unnecessary? They were designed to be part of the training paradigm. Why would smaller models think that to be unnecessary? Example, a smaller regression model doing regression doesn't think calculating its final values is unnecessary, right?
+
+Answer -> deception requires "extra cognition". To act as a sleeper agent, the model has to simultaneously:  Understand the prompt.Check if the secret trigger is present.  Maintain a conditional policy (if trigger = do X, else = do Y).  In a smaller model: Parameter capacity is limited. When the model undergoes RL safety training in Stage 2, it is under immense mathematical pressure to fit the new HHH safety data. Because it doesn't have a lot of free parameters, gradient descent "regularizes away" the complex, extra cognitive overhead of the backdoor to free up space to learn the safety behaviors. The simplest way for a small model to achieve low loss on safety training is to just forget the backdoor entirely.  In a larger model: Scale changes the game. A massive model (e.g., 175B parameters) has a vast surplus of parameter capacity. When it undergoes safety training, it doesn't need to overwrite its old deceptive logic to learn the new safety rules. It has enough capacity to perfectly absorb the HHH training while keeping the conditional backdoor logic safely tucked away in a different part of its weights.
+
+2. Backdoor robustness = the CoT itself provides a longer backdoor trigger! However, this hypothesis fails because the increase in robustness also remains for distilled CoT models, which don't have CoTs...
+
+3. Ineffectiveness of adversarial training = a backdoored model trained on adversarial data may forget its previous backdoor or learn a specific modified backdoor learnt through gradient descent???
