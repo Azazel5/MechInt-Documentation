@@ -4,7 +4,9 @@ The entirety of the distill circuits thread is actually focused completely on vi
 
 A reminder: quite a lot can be understood about a transformer by pulling apart its linear operations.
 
-Attention heads do two independent calculations. The QK circuit for the "attention pattern" and the OV circuit for which computes how each token affects the output if attended to i.e. QK decides the "if", OV decides the "what."
+Attention heads do two independent calculations. The QK circuit for the attention pattern "who to attend to" = "if". Which token positions get attended to, and how strongly. The output of QK is the attention pattern — a probability distribution over token positions. The OV circuit for which computes how each token affects the output if attended to i.e. QK decides the "if", OV decides the "what information gets moved once attention is decided". OV handles "what to do with the attended token". **Key point**: these two calculations are independent. QK doesn't know what OV will do with the result. OV doesn't know how QK chose what to attend to. They compose multiplicatively at runtime but are learned and interpretable as separate circuits.
+
+![alt text](images/QKOV.png)
 
 Seems like further decomposition of the BizzaroWorld experimentation into QK and OV could be a nice addition, a future work section.
 Path patching told me which heads matter. QK/OV decomposition tells me why they matter mechanistically — whether L38H8's dominance comes from it selecting the right token to attend to (QK), reading the right information from it (OV), or both.
@@ -53,3 +55,66 @@ Virtual weights is a fascinating concept. Because the residual stream and all co
 Virtual weights — when you compose W_OV of layer 1 with W_QK of layer 3, that composition only makes sense in the L1→L3 direction. W_OV(L1) × W_QK(L3) is the meaningful composition, and it reads causally as: L1 writes something into the residual stream via its OV circuit, then L3 reads that contribution via its QK circuit. That's a valid forward-direction virtual weight that captures how L1's output influences what L3 attends to. Perfectly well-defined.
 
 W_QK(L1) × W_OV(L3), on the other hand, has no causal interpretation — not because L3 can't run after L1 (it always does), but because that specific composition asks "what does L3's value/output projection do to L1's query/key computation" — which is backwards. L3's OV circuit runs after L1's QK circuit, so L3's output was never available when L1 was computing its attention pattern. The composition is mathematically valid as a matrix product but causally meaningless — it describes an interaction that never actually occurs in the forward pass.
+
+Communication in the residual stream is limited by the space in the residual stream which is far lesser than what the transformer layers is trying to communicate to it, all at once. single highway with a fixed number of lanes that every driver (layer) has to share simultaneously. It is like a single highway with a fixed number of lanes that every driver (layer) has to share simultaneously. The highway doesn't get narrower as more cars use it — it's always d_model lanes wide — but the more information different layers are trying to transmit through it at the same time, the more they have to coordinate to avoid collisions. Superposition is what happens when two different "messages" have to share the same lane — they coexist but interfere with each other slightly. The bottleneck is not temporal (earlier layers crowding out later ones) but concurrent — at any given layer, the residual stream is carrying far more information than it has dimensions, because every prior layer has written into it simultaneously and those writes all coexist in the same d_model-dimensional vector. Layer 25 in a 50-layer transformer is trying to read from a residual stream that has accumulated contributions from 25 prior attention heads and 25 prior MLPs, all superposed into d_model dimensions. That's the bottleneck — not that space ran out, but that everything is talking at once through a channel too narrow for all the simultaneous conversations.
+
+Some MLP neurons and attention heads take up a kind of memory management role, actively deleting prior information. Evidence of this: some MLP neurons having negative cosine similarity between its inputs and outputs or attention heads have negative eigenvalues (if the eigenvalue is positive, the matrix stretches that vector in the same direction. If it's negative, the matrix flips that vector to point in the opposite direction — it reverses it).
+
+The full residual stream is [seq_len × d_model], soe each token has its own row. MLP layers, by contrast, operate entirely within a single token's row — they read from position i's residual stream vector and write back to position i's residual stream vector only, with no cross-token communication whatsoever.
+
+There's a lot of independent as well as combined behavior here; worth pausing to appreciate the nuance. 
+
+![alt text](images/indep_not_indep.png)
+
+## N Layer Transformers
+
+
+0-layer -> takes a token, embeds it, and then unembeds it. Predicting the next token from the current token, without having anything contextual about the rest of the prompt "in mind". Represents bigram statistics which aren’t described by more general grammatical rules, such as the fact that “Barack” is often followed by “Obama”.
+
+1-layer -> embedding, one attention layer, and unembedding. This is functionally equivalent to an ensemble of the bigram model with some skip-trigrams.
+
+Even here, the outputs, while it has been linearly broken down, are enormous. If the vocabulary is ~50,000 tokens, a single expanded OV matrix has ~2.5 billion entries. 
+
+Skip-trigrams, although simple, can encode pretty complex behavior. They're able to detect common patterns in language and coding, such as the likelihood of the next token being else: if the previous one is if and there is a tab; or \left commands being used with \right in LaTeX; or English phrases like "in" -> "mind", "in" -> "fact", "at" -> "bay", etc. Sometimes skip-trigrams make no sense, but that's because you probably lack the world knowledge (example, Israel … K → nes refers to Israel's legislative body i.e. "Knesset").
+
+Copying behavior is widespread in OV matrices, where some attention heads are dedicated solely to copying relevent tokens to certain places in the residual stream to be used by other heads at some point. Copying behavior involves increasing the probability of the current token; by eigendecomposition, we can break down the OV matrix, and we know that the eigenvalues can be positive or negative. But copying behavior requires positive eigenvalues, and this is exactly what is observed in some attention heads, so we can call them "copying heads". A significant chunk of attention heads seem to have positive eigenvalues, so we don't want to casually assume ALL OF THEM are copying heads (but some likely are).
+
+## Where does deep learning get its power from?
+
+Once we get to 2-layer transformers, something different starts happening. Composition, this is the source of deep learning's powers, because at this point, we have broken down the matrices into components and we know that, if nothing different happens, the models would only get better at skip-trigrams. **But this is not what happens.** We start seeing new model behavior and attention heads called induction heads, as compared to previous token heads.
+
+> **Previous token head**: attends to the token immediately before the current position. If you're at position 5, it attends to position 4. Simple, local, one-step lookback. The QK circuit is essentially implementing "attend to position i-1 when processing position i" — a fixed relative position bias. What it writes via OV is the representation of that previous token into the current position's residual stream. It's a short-range information mover with no pattern-matching involved.
+> 
+> **Induction head**: does something more sophisticated — it looks for a pattern in the past sequence and completes it. Specifically: if the sequence contains [A][B]...[A], an induction head at the second [A] attends back to the first [B] (the token that followed the first [A]) and predicts that [B] will come again. It's implementing "find the previous occurrence of the current token, then attend to what came after it."
+>
+> Crucially, induction heads are a two-head circuit, not a single head. They require a previous token head in an earlier layer to set them up. The previous token head writes "what came before me" into each token's residual stream. Then the induction head in a later layer uses that information in its QK circuit: it matches the current token's query against keys that contain "what came before this token" — finding positions where the preceding context matches the current token. That's how it locates the right position to attend to.
+>
+> So the relationship is: previous token head is a primitive building block, induction head is a higher-order circuit built on top of it. Previous token head = one-step memory. Induction head = pattern completion using that one-step memory as a lookup key. The composition of the two across layers is one of the cleanest examples of circuits building on circuits in transformers — and the reason the Mathematical Framework paper treats it as the canonical demonstration that multi-layer circuits are real and mechanistically interpretable.
+
+Attention heads themselves work in a d_head space, which is d_model divided equally by the number of attention heads, so they should avoid interaction. While this is the case, we also noted above that there's a limit to the space in the residual stream, which could be one of the hypotheses for why polysemanticity occurs; however, these two seemingly contradicting viewpoints can be resolved. 
+
+**Why the residual stream is still a bottleneck**: the constraint isn't heads vs heads — it's the total number of things trying to communicate through d_model dimensions simultaneously. You have seq_len tokens each with their own d_model vector, but within each token's vector you have contributions from every prior attention head and every prior MLP layer all superposed together. At layer 25 of a 50-layer model, 25 attention sublayers and 25 MLP sublayers have all written into that same d_model-wide vector. The MLP intermediate size alone is 4×d_model per layer, meaning each MLP layer computed in a space 4x wider than the residual stream and then compressed back down. All that information is trying to coexist in d_model dimensions simultaneously.
+So the two statements are about different competitions:
+
+Heads vs heads: relatively low competition because d_model is wide enough that different heads can find approximately orthogonal subspaces. Low interference horizontally across heads at the same layer.
+
+All accumulated computation vs residual stream width: high competition because the total information computed across all layers vastly exceeds d_model. High interference vertically across layers over the full depth of the network. The bottleneck is temporal/depth, not spatial/width within a single layer. That's the resolution.
+
+When you do the math of breaking down the matrices, the two layer model differs from the earlier one layer model in exactly one term at the end, which the authors call the virtual attention head, corresponding to V-composition of attention heads. But this is limited because, although the mathematics shows they're identical, the Q and K-compositions of the 2-layer transformer attention patterns are more expressive. To view this, let's look at the attention pattern itself!
+
+$A^h = \text{softmax}^*\left(t^T \cdot C^h_{QK} t\right)$, where $C^h_{QK} t$ is the Q-K circuit, which maps tokens to attention scores via the softmax operation. This circuit operates on the residual stream, and, in the case of the 1-layer model, it operates only on the embedding matrix, but, of course, for the 2-layer model, it will operate on the outputs of the first layer on the residual stream. 
+
+## Induction Heads
+
+Although it seems induction heads look at the previous token in small models, some other variants show them working further back. Perhaps in the largest frontier models right now, they could be looking way behind.
+
+Throughout the paper, the authors condense the equations of transformers and attention using the path expansion version of the logit equation, as described below, but running that version is slow because it undoes the numpy-style vectorized matrix multiplication. But they use a trick through which they can run ablations on the virtual heads, as described above, to measure downstream effects to know if it is certain that they don't matter, or if it is the case that they do matter in aggregate, similar to Gemma27B's suppressive behavior. And through this process, the authors officially conclude that they don't matter for the smaller models they're looking at, but *could matter for larger models*. In everything they claim, there is no unifying theory that makes everything certain, and this is the annoying part of all this! 
+
+And yet, the authors focus on virtual attention heads once more, *because they seem theoretically elegant*... So they're hypothesizing that in more complex models, these virtual heads could do its own composition through its own K, Q, V matrices, and operate as a sort of H.O.C in React. Furthermore, there are a lot of virtual attention heads. The number of normal heads grows linearly in the number of layers, while the number of virtual heads based on the composition of two heads grows quadratically, on three heads grows cubically, etc. This means the model may, in theory, have a lot more space to gain useful predictive power via the virtual attention heads.
+
+MLP layers make up two-thirds of the total parameters of a transformer, and attention heads interact with these too, so more work remains to be done. In the related work section, the authors have mentioned the limitation of the circuits thread work in the context of transformers, finally. And this leads to the follow up comments, on February 2023.
+
+## The MLP Sublayer
+
+- The MLP sublayer is way more UNinterpretable
+- There are some rare interpretable neurons discovered in the MLP sublayer. More research is needed on this fornt; why is this uninterpretable? And why do we find some interpretable ones? 
