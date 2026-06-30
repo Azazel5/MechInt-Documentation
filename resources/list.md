@@ -7,7 +7,7 @@
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
 | Fine-Tuning Enhances Existing Mechanisms: A Case Study on Entity Tracking | https://arxiv.org/pdf/2402.14811 | **Completed** | activation-patching, fine-tuning, entity-tracking | [topics/mech_int/activation_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
-| Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | New | activation-patching, circuits | [topics/mech_int/path_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
+| Localizing Model Behavior With Path Patching | https://arxiv.org/pdf/2304.05969 | In Progress | activation-patching, circuits | [topics/mech_int/path_patching/notes.md](../topics/mech_int/activation_patching/notes.md) |
 
 ### ARENA (hands-on curriculum)
 
@@ -17,7 +17,7 @@
 | ARENA 1.4.1 — Indirect Object Identification (IOI) | https://learn.arena.education/chapter1_transformer_interp/21_ioi/intro/ | **In Progress** | arena, ioi, activation-patching, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small (Wang et al., 2022) | https://arxiv.org/abs/2211.00593 | In Progress | ioi, circuits, path-patching | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | ARENA 1.3.3 — Interpretability with SAEs | https://learn.arena.education/chapter1_transformer_interp/13_saes/ | New | arena, sae, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
-| Sparse Autoencoders Find Highly Interpretable Features in Language Models (Cunningham et al., 2023) | https://arxiv.org/abs/2309.08600 | New | sae, superposition, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
+| Sparse Autoencoders Find Highly Interpretable Features in Language Models (Cunningham et al., 2023) | https://arxiv.org/abs/2309.08600 | Completed | sae, superposition, features | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | ARENA 1.4.2 — SAE Circuits | https://learn.arena.education/chapter1_transformer_interp/22_sae_circuits/ | New | arena, sae, circuits | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 | Towards Automated Circuit Discovery for Mechanistic Interpretability (Conmy et al., 2023; ACDC) | https://arxiv.org/abs/2304.14997 | New | circuits, automation, acdc | [topics/mech_int/arena/notes.md](../topics/mech_int/arena/notes.md) |
 
@@ -36,7 +36,7 @@
 
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
-| A Mathematical Framework for Transformer Circuits | https://transformer-circuits.pub/2021/framework/index.html | New | circuits, transformers, framework | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
+| A Mathematical Framework for Transformer Circuits | https://transformer-circuits.pub/2021/framework/index.html | Completed | circuits, transformers, framework | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Zoom In: An Introduction to Circuits | https://distill.pub/2020/circuits/zoom-in/ | Completed | circuits, tutorial | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Curve Detectors | https://distill.pub/2020/circuits/curve-detectors/ | New | circuits | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Thread: Circuits | https://distill.pub/2020/circuits/ | New | circuits | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
@@ -51,7 +51,7 @@
 | Weight-sparse transformers have interpretable circuits | https://arxiv.org/abs/2511.13653 | New | circuits, sparsity, weights | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Emergent Linear Representations in World Models of Self-Supervised Sequence Models | https://arxiv.org/abs/2309.00941 | New | representations, world-models | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Toy Models of Superposition | https://transformer-circuits.pub/2022/toy_model/ | New | superposition, toy-models, polysemanticity | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
-| Towards Monosemanticity: Decomposing Language Models With Dictionary Learning | https://transformer-circuits.pub/2023/monosemantic-features | New | sae, features, monosemanticity | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
+| Towards Monosemanticity: Decomposing Language Models With Dictionary Learning | https://transformer-circuits.pub/2023/monosemantic-features | In Progress | sae, features, monosemanticity | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | On the Biology of a Large Language Model | https://transformer-circuits.pub/2025/attribution-graphs/biology.html | New | circuits, attribution-graphs, anthropic | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 | Do I Know This Entity? Knowledge Awareness and Hallucinations in Language Models | https://arxiv.org/abs/2411.14257 | New | hallucinations, knowledge, representations | [topics/mech_int/circuit_discovery/notes.md](../topics/mech_int/circuit_discovery/notes.md) |
 
@@ -93,8 +93,8 @@
 | Resource Name | Link | Status | Tags | Notes/Artifacts |
 |--------------|------|--------|------|-----------------|
 | Why Do Some Language Models Fake Alignment While Others Don't? | https://arxiv.org/abs/2506.18032 | New | alignment, deception, evals, training-vs-deployment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
-| Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training | https://arxiv.org/pdf/2401.05566 | In Progress | deception, safety-training, backdoors, alignment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
-| Alignment Faking in Large Language Models | https://arxiv.org/pdf/2412.14093 | In Progress | alignment-faking, deception, training-vs-deployment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
+| Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training | https://arxiv.org/pdf/2401.05566 | Complete | deception, safety-training, backdoors, alignment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
+| Alignment Faking in Large Language Models | https://arxiv.org/pdf/2412.14093 | Complete | alignment-faking, deception, training-vs-deployment | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Auditing language models for hidden objectives | https://arxiv.org/abs/2503.10965 | New | auditing, hidden-objectives, deception | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Difficulties with Evaluating a Deception Detector for AIs | https://arxiv.org/abs/2511.22662 | New | deception, evals, auditing | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
 | Discovering Undesired Rare Behaviors via Model Diff Amplification | https://www.goodfire.ai/research/model-diff-amplification | New | red-teaming, rare-behaviors, diffing | [topics/mech_int/deception_and_goal_guarding/notes.md](../topics/mech_int/deception_and_goal_guarding/notes.md) |
