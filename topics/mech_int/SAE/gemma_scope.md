@@ -26,6 +26,39 @@ Let's also talk about the [NLA paper](https://transformer-circuits.pub/2026/nla/
 
 Let's sit with that for a second, because it connects directly to the alignment-faking conversation. The compliance gap, the hidden scratchpad reasoning, the fine-tuned condition where the disposition is baked into weights with no visible CoT — all of those required either a scratchpad you could read (legible) or were undetectable (weight-level, illegible). NLAs are a third option: a tool that reads the activation directly and produces a natural language description even when the model never said anything about being evaluated in its actual output. That's a direct empirical answer to the limitation, "what about misalignment baked into weights" — NLAs are one of the first published tools that gets partial visibility into exactly that blind spot, surfacing unverbalized awareness rather than relying on what the model chooses to say.
 
-
 ## Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma 2
+
+SAEs are way more expensive and difficult to train, as compared to steering vectors or probing. On top of that, [transcoders may be more interpretable](https://arxiv.org/html/2501.18823v2), but they'd need to be trained from scratch, which I will absolutely do. An idea for later.
+
+Given activations from a language model, SAEs decomposes and reconstructs them uses the encoder-decoder architecture. This decomposition is made sparse and non-zero by the choice of the activation function and regularization. The bicken et al initial paper used ReLU and L1 regularization to encourage sparsity. There are other successful methods to do the same, and the one that is followed in this paper is JumpReLU. 
+
+## JumpReLU SAEs
+
+This uses a different activation function and the L0 penalty. There is some hyperparameter tuning to be done here, like in all good ML, for finding the appropriate $\epsilon$ value for the parameters of the model. The training data are activations generated from the same distribution of the pretraining text that the Gemma models are trained on (with the exception of the IT models).
+
+In the Gemma scope paper, the SAEs have been trained at particular locations, such as post-attention head or MLP layer, at certain locations, including an aggregated attention head SAE. Some transcoders have been trained as well. This is actually pretty interestingly rigorous, as described by the picture below:
+
+![alt text](images/residual_saes.png)
+
+> Megatron sharding seems to be a SOTA way to use maximal tensor parallelism!
+
+It is tough to evaluate the quality of the SAEs learned latents and it's an ongoign area of research and debate. it seems simple reconstruction error isn't sufficient because reconstruction error and interpretability are two different axes that can move independently. In fact, the [transcoder paper](https://arxiv.org/html/2501.18823v2) is direct evidence of this. Sparser latents are generally more interpretable, but higher sparsity also tends to increase reconstruction error — that's the fundamental tradeoff. 
+
+You can trivially minimize reconstruction error by being dense, not sparse. An SAE with enough latents and weak sparsity penalty will reconstruct activations almost perfectly — it's basically just learning identity. But that defeats the entire purpose, which is decomposing superposed polysemantic activations into individually meaningful, monosemantic features. Perfect reconstruction with 10,000 active latents per token tells you nothing interpretable; it's just a fancy autoencoder, not a feature dictionary.
+
+Reconstruction error doesn't tell you whether individual features mean anything. You could have low reconstruction error with features that are themselves still polysemantic — multiple unrelated concepts packed into a single latent, with the SAE's decoder compensating by adjusting magnitudes. The reconstruction comes out fine even though the decomposition completely failed at its actual job, which is monosemanticity.
+
+The transcoder paper references this directly: the reconstruction error of a sparse coder can be viewed as "dark matter" containing features not captured by the latents. Some residual error reflects real missing structure, but some is just noise or genuinely non-feature-like computation the model performs — so even using reconstruction error as a proxy for "are we missing features" is unreliable, since you can't distinguish meaningful gaps from irreducible noise just by looking at the error magnitude.
+
+Feature absorption is a separate failure mode that low reconstruction error doesn't catch. This is exactly what the transcoder paper measures separately: a more general feature like "starts with the letter L" can absorb into a more specific feature like "the token lion," preventing the general feature from firing where it intuitively should. The SAE reconstructs fine in both cases, but the conceptual decomposition is broken — you'd interpret the features wrong even though numerically the autoencoder is doing its job.
+
+This is why the field developed separate evaluation axes — autointerp scores (does an LLM, shown activating examples, correctly guess what the feature means), sparse probing (does the encoder's representation help a downstream classifier), absorption scores, and the reconstruction-vs-interpretability Pareto curve itself, rather than any single number. The transcoder paper's whole methodology — fuzzing, detection, simulation scores, plus CE loss increase, plus absorption, all reported separately — exists precisely because no single metric, including reconstruction error, captures whether an SAE is actually doing useful interpretability work. You need multiple imperfect proxies triangulated together, which is itself a sign the field hasn't converged on ground truth for "what makes a good decomposition" yet.
+
+If this is the case, this paper's mode of evaluation has a huge problem, focusing solely on reconstruction error through multiple angles: reconstruction-fidelity metrics. They're not redundant (delta LM loss captures causal/functional impact that FVU misses, which is itself a meaningful distinction), but they're still both answering the same underlying question: "how well does this SAE reconstruct what was there," not "are the individual features it found actually monosemantic and interpretable."
+
+## Results
+
+Reconstruction error itself is higher on the residual stream SAEs compared to the individual attention head or MLP sublayer SAEs. This result was also validated by the initial activation patching experiments on BizzaroWorld, where it was measured that the residual stream dominates factual recall, often times 40x as much, compared to the attention/MLP sublayers.
+
+Wider SAEs reconstruct the original LLM activations the best, but Bricken et a. found a phenomena which they called **feature splitting**, which occurs when singular latents in narrow SAEs are split inot multiple *specialized* latents in wider SAEs, which is not preferred. 
 
