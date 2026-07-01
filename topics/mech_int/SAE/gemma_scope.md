@@ -1,4 +1,4 @@
-## NeuronPedia and other resources
+## NeuronPedia
 
 The Gemma Scope paper and other researchers have revealed to me the existence of some interesting resources I will be looking at, before the actual paper. In particular, NeuronPedia is particularly enlightening, as we can access multiple models and use SAEs there to see what features activate!
 
@@ -25,6 +25,24 @@ What's happening when I suppress it and get "I don't have personal opinions" is 
 Let's also talk about the [NLA paper](https://transformer-circuits.pub/2026/nla/index.html) from last month, which is something to think about implementing in BizzaroWorld. The most striking finding from the paper, and directly relevant to everything I've been up to: during their pre-deployment audit of Claude Opus 4.6, NLAs helped diagnose safety-relevant behaviors and surfaced unverbalized evaluation awareness — cases where Claude believed, but did not say, that it was being evaluated. arXiv
 
 Let's sit with that for a second, because it connects directly to the alignment-faking conversation. The compliance gap, the hidden scratchpad reasoning, the fine-tuned condition where the disposition is baked into weights with no visible CoT — all of those required either a scratchpad you could read (legible) or were undetectable (weight-level, illegible). NLAs are a third option: a tool that reads the activation directly and produces a natural language description even when the model never said anything about being evaluated in its actual output. That's a direct empirical answer to the limitation, "what about misalignment baked into weights" — NLAs are one of the first published tools that gets partial visibility into exactly that blind spot, surfacing unverbalized awareness rather than relying on what the model chooses to say.
+
+## JumpReLU SAEs and Gemma Scope Tutorials
+
+This can be done in PyTorch and JAX. The SAE width is a pretty important hyperparameter, as we've seen by the paper below; however, the other hyperparameters required are similar to basic ML ones. 
+
+- They use JAX with Megatron sharding here!
+- We use the Google DeepMind's version of JAX, through their library "Chex"
+- Chex works in a typed way, similar to TypeScript
+- STE = Straight Through Estimator. In discrete/step-wise functions, gradients are unhelpful or literally undefined because there are not good values to differentiate. A step function outputs 0 or 1. The derivative is zero everywhere except at the jump, where it's undefined. Backprop multiplies gradients — multiply by zero, gradient dies. The network can't learn anything upstream of that function. And JumpReLU is literally defined as such a step function: output = x if x > $\theta$, else 0. To be fair, this is almost as same as ReLu with the difference being $\theta$, a learned parameter. 
+
+What STE does:
+
+During the forward pass — use the actual step function. Hard threshold, discrete output. Real behavior preserved.
+During the backward pass — pretend the function was something differentiable, usually the identity function or a sigmoid. Pass the gradient through as if the step function wasn't there.
+
+It's mathematically dishonest. You're lying to the optimizer. But empirically it works because the gradient signal is approximately right enough to push weights in useful directions.
+
+SAELens is the library you should be using here, through which you can download all the Gemma Scope SAEs, and more too probably! 
 
 ## Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma 2
 
