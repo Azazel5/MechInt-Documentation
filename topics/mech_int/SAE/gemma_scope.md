@@ -60,5 +60,13 @@ If this is the case, this paper's mode of evaluation has a huge problem, focusin
 
 Reconstruction error itself is higher on the residual stream SAEs compared to the individual attention head or MLP sublayer SAEs. This result was also validated by the initial activation patching experiments on BizzaroWorld, where it was measured that the residual stream dominates factual recall, often times 40x as much, compared to the attention/MLP sublayers.
 
-Wider SAEs reconstruct the original LLM activations the best, but Bricken et a. found a phenomena which they called **feature splitting**, which occurs when singular latents in narrow SAEs are split inot multiple *specialized* latents in wider SAEs, which is not preferred. 
+Wider SAEs reconstruct the original LLM activations the best, but Bricken et a. found a phenomena which they called **feature splitting**, which occurs when singular latents in narrow SAEs are split inot multiple *specialized* latents in wider SAEs, which is not preferred.
+
+The actual interpretability of the discovered latents were, after all, analyzed, but not in a way that is satisfactory. They used human and LLM explanation. [This paper](https://arxiv.org/pdf/2407.14435) was the DeepMind paper from which inspiration is drawn for this. And this is another interesting one that talks about [the composition of features in NNs](https://arxiv.org/pdf/2407.14662).
+
+> In AI and data science, FVU stands for Fraction of Variance Unexplained. It is a statistical metric used to measure how much of the variation in a dataset is not accounted for by a machine learning model or an algorithmic process. A lower FVU means the model is accurately capturing the underlying data.
+
+> Interestingly, reducing the models' floating point precision at inference time is a pretty good tactic that has negligible impact.
+
+Splicing the Gemma 9B based SAEs to reconstruct activations generated from Gemma 9B-IT is pretty darn successful, resulting almost no difference between the delta loss curves 
 
