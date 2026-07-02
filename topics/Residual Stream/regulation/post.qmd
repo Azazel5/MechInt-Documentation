@@ -10,17 +10,17 @@ What I am getting at is this: **there is no industry with no regulation**. When 
 
 ## Tech (and especially AI) has escaped regulation
 
-And that is strange. For some reason, technology and software inhabit this mystical territory where it seems no regulation exists, even though, increasingly so, people live two lives in the 2026: their live in the digital world and their life outside, IRL.
+And that is strange. For some reason, technology and software inhabit this mystical territory where it seems no regulation exists, even though, increasingly so, people live two lives in 2026: their life in the digital world and their life outside, IRL.
 
-Banks, brokerages, retailers, education, defense, politics, EVERYBODY used the digital world as their main infrastructure now. This is exactly why the Mythos model was such big news **because it was able to disproportionately find vulnerabilities, and importantly, exploits, that could potentially damage all of this**. Scary.
+Banks, brokerages, retailers, universities/schools/think tanks/companies, defense agencies, political campaigns, EVERYBODY and EVERY KIND OF ENTITY uses the digital world as their main infrastructure now. This is exactly why the Mythos model was such big news **because it was able to disproportionately find vulnerabilities, and importantly, exploits, that could potentially damage all of this**. Scary.
 
-If software is unregulated for the most part, AI is completely unregulated right now, because most people don’t even know how it works. To regulate, regulators need to have experts by their that side that assists them, no? On top of that, tech CEOs are constantly asking governments to regulate even less now, which means… No safety? Or whatever safety that these companies deem is enough for us to shut up?
+If software is unregulated for the most part, AI is completely unregulated right now, because most people don’t even know how it works. To regulate, regulators need to have experts by their side that assists them, no? On top of that, tech CEOs are constantly asking governments to regulate even less now, which means… No safety? Or whatever safety that these companies deem is enough for us to shut up?
 
 **Human engineering has never been so lax and irresponsible**. This is terrible tragedy because this is the exact moment where we need to tread very lightly. AI has reached a point where it can really go out of hand. This is the total loss of control argument that Alan Turing made in his speech about superintelligent machines.
 
-> In his 1951 lecture in Manchester, “Intelligent Machinery, A Heretical Theory,” he speculated that if machines learn by experience, they would eventually outstrip human capabilities, writing: *“At some stage therefore, we should have to expect the machines to take control.”*
+> In his 1951 lecture in Manchester, “Intelligent Machinery, A Heretical Theory,” Alan Turing speculated that if machines learn by experience, they would eventually outstrip human capabilities, writing: *“At some stage therefore, we should have to expect the machines to take control.”*
 
-And we have nearly reached this point,** WHILE we have problems, such as alignment faking, our inability to remove deceptively installed backdoors on LLMs, model collapse, idea implanting (I will talk more about what this means in another post), emergent capabilities, our complete inscrutability of their true goals, and the risk that our reliance of CoT (Chain of Thought) will soon be useless anyways because perhaps it will be more efficient for intelligent AI to talk in their own language i.e. Neuralese**. And these the exists risks right now, which will get scaled up dramatically as models grow in size and capabilities. In fact, some of these risks have been particularly noticed TO get worse with scale.
+And we have nearly reached this point, **WHILE we have problems, such as alignment faking, our inability to remove deceptively installed backdoors on LLMs, model collapse, idea implanting (I will talk more about what this means in another post), emergent capabilities, our complete inscrutability of their true goals, and the risk that our reliance of CoT (Chain of Thought) will soon be useless anyways because perhaps it will be more efficient for intelligent AI to talk in their own language i.e. Neuralese**. And these the exists risks right now, which will get scaled up dramatically as models grow in size and capabilities. In fact, some of these risks have been particularly noticed TO get worse with scale.
 
 ## What do we do?
 
