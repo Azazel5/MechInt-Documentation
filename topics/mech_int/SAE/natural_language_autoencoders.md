@@ -33,6 +33,38 @@ Why on earth did they choose to use this example? This is so strange of Anthropi
 
 Here, Anthropic rigs the tool call of the model unbeknownst to it (which should have returned a wrong answer), and the model still ploughs ahead with the correct answer, showing that it didn't use the tool when asked. In the Mythos preview, during a task, the model was asked to evaluate a result without using macros. The model used it anyways, and the NLA explanation showed an awareness of being graded which the model sought to fool by using a flag *No_macro_used=True*. NLAs are pretty awesome given that they are able to catch and explain such behavior in language, even with their limitations as described above. 
 
+There's a bit of an obvious test done here, where the model is given a system prompt that explicitly mentions that even numbers are rewarded, and the model does in fact provide that, even when the user's request is for the model to provide an odd number. There is no suprise here, but I guess, the actual thing they were trying to measure was whether NLA finds this or not, **which it does**. 
+
+There's some consistency between SAE discovered features and NLA explanations; however, at the very next second, the authors give points that call into question this staement, so I am left unsure what to think.
+
+1. The authors don't explicitly reward well written explanations, so it declines with further training
+2. The confabulation problem persists, making it difficult to be sure about what to believe and what not to believe for NLA explanations... Overall, it seems good enough as one of the attack vectors for interpretability, rather the one-shot solution
+
+## NLA Confabulations
+
+Logically, removing false claims hurts reconstruction error more, but, strangely, removing false but somewhat related claims, still hurts reconstruction error somewhat, meaning it is needed for the model. Although the authors don't explicitly say this, given their language, it can be inferred that removing even the hallucinated and unrelated claims hurts the reconstruction error, albeit it hurts the metric the least, which is **super strange to say the least**. 
+
+And this is the kind of thing that the authors cannot and don't even try to explain. To explain more how they found out such details: they divided the NLA outputs into three separate categories to find these details: true, false (related), and false (unrelated), and into more categories, such as thematic, entity, or detail based. Overall, the behavior is confusing...
+
+There seems to be a way to forcibly extract reliability here (**although even this is not 100% reliable**). For instance, actual true claims seem to recurr across tokens, at a higher rate than other things, so that's *something*. All of this is an unfortunate band-aid solution for the fact that text has no provenance. If it did, we wouldn't need to do unreliable stuff like this, but that's where we are.
+
+![alt text](images/unverbalized-1.png)
+![alt text](images/unverbalized-2.png)
+
+The most exciting thing about NLAs are that they are able to find concepts that the models represent but do not verbalize i.e. think about applications to evaluation awareness. **The awesome thing about this is that NLAs seem to surface things that are wholly absent in the CoT scratchpad!!!**. NLAs seem to be able to give us something, even in the case that AI agents of the future shift to something like their own CoT language like neuralese. And here we have yet another experiment idea:
+
+> Take the fine-tuned alignment-faking model (the condition where the compliance gap persists even without a scratchpad). Run the monitored vs unmonitored prompts through it. Apply NLA to the residual stream at the critical decision layer. Check whether NLA surfaces evaluation awareness or strategic compliance reasoning in the activation description even though the CoT is absent and the output looks identical between conditions.
+
+> If NLA finds it — you've demonstrated a tool that catches weight-level alignment faking that behavioral monitoring and CoT inspection both miss. That's a direct empirical answer to the paper's own open question about what detection tools work post-CoT-removal.
+
+> If NLA doesn't find it — that's also publishable, it characterizes the limits of NLAs and tells you the disposition is encoded in a way that even activation verbalization can't surface, which pushes toward needing direct weight-level circuit analysis like the BizzaroWorld methodology.
+
+Another experimental idea, on the Neuralese bit:
+
+> The emergent communication literature already has trained agents that communicate in non-human symbol sequences — DIAL, CommNet, EGG framework from FAIR. You don't need to construct a language from linguist theory or train agents from scratch. Take existing emergent communication agents, apply NLAs to their communication activations, check if NLA verbalization accurately characterizes what's being communicated (you can verify because you have the ground-truth task the agents are solving). That collapses your three steps into one — the hard work is already done, you're just running NLA evaluation on top.
+
+> Verdict: the hypothesis is worth testing, the proposed method is three separate research projects stacked. Use the EGG framework or similar existing emergent communication setup as your substrate, apply NLA, test the hypothesis directly. 
+
 
 
 
