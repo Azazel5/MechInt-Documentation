@@ -1,3 +1,13 @@
+---
+title: "Sparse Autoencoders, Gemma Scope, and NLAs"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## NeuronPedia
 
 The Gemma Scope paper and other researchers have revealed to me the existence of some interesting resources I will be looking at, before the actual paper. In particular, NeuronPedia is particularly enlightening, as we can access multiple models and use SAEs there to see what features activate!
@@ -163,7 +173,7 @@ It seems my guess is correct, although there are nuances here worth thinking abo
 
 > When you find the difference between activations and the reconstructed version using AR, you find the steering vector, which can be used to change what the model percevies will get it rewarded
 
-Some case studies show that NLAs sometimes confabulate, and here we are: **the chicken and the egg problem**. We have not prevented our language models from confabulating yet, meanwhile our tools to understand them do the same as well 😔. The authors assert that NLA descriptions are generally faithful in context (but false in the specifics). Yipee. Another limitation is that NLAs are black boxes: a black trying to explain another black box. Want to have chicken or an omelette? The AV verbalizes everything because it is a full language model, so sometimes it is **way too expressive**.
+Some case studies show that NLAs sometimes confabulate, and here we are: **the chicken and the egg problem**. We have not prevented our language models from confabulating yet, meanwhile our tools to understand them do the same as well. The authors assert that NLA descriptions are generally faithful in context (but false in the specifics). Yipee. Another limitation is that NLAs are black boxes: a black trying to explain another black box. Want to have chicken or an omelette? The AV verbalizes everything because it is a full language model, so sometimes it is **way too expressive**.
 
 > Check out: activation oracles
 

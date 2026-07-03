@@ -1,3 +1,13 @@
+---
+title: "Scaling Scaling Laws with Board Games"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## Scaling scaling laws with board games
 
 For individual researchers such as myself, it can be tough to do research. I don't have infrastructure, compute, and am severely bottlenecked in these aspects which make it difficult to do full research (exmaple, when I tried replicating and extending Anthropic's Constitutional AI on a limited 30GB disk quota constraint on my university's HPC). While I appreciated the fact that I even had an HPC in the first place, it was no way to do proper research. But, this paper covers the fact that oftentimes, such things are not even needed! Let's explore what the author means!
@@ -22,6 +32,6 @@ While the authors drew heavily inspirations from open source implementations of 
 
 MCTS is actually CPU bound. MCTS is a sequential tree search — each simulation depends on the result of the previous one to decide where to explore next. The UCB selection formula at each node:
 
-UCT = Q(s,a) + c * P(s,a) * sqrt(N(s)) / (1 + N(s,a))
+$$UCT = Q(s,a) + c \cdot P(s,a) \cdot \frac{\sqrt{N(s)}}{1 + N(s,a)}$$
 
 requires knowing the current visit counts before selecting the next node. You can't parallelize this the way you parallelize matrix multiplications — each step has a data dependency on the previous step.
