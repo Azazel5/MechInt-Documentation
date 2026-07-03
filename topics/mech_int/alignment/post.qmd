@@ -1,3 +1,13 @@
+---
+title: "AI Alignment: Papers and Notes"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## Overview
 
 

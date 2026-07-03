@@ -3,7 +3,9 @@ title: "BizzaroWorld, complete replication and findings on Gemma2B and Gemma12B-
 format:
   html:
     toc: true
-  pdf: default
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
 ---
 
 # BizzaroWorld, complete replication and findings on Gemma2B and Gemma12B-IT
@@ -33,8 +35,8 @@ The core finding was a three-phase factual recall circuit:
   moves from the entity token position to the final prediction 
   position via attention heads collectively. No single head was 
   sufficient — Head 2 was most consistent at 40% of prompt pairs 
-  across Mode A, but individual head damage (max ΔLD = -0.68) was 
-  negligible compared to full entity damage (ΔLD = -11.47).
+  across Mode A, but individual head damage (max $\Delta$LD = -0.68) was 
+  negligible compared to full entity damage ($\Delta$LD = -11.47).
 
 - **Phase 3 - Readout (layers 15-17, final token position):** 
   The answer is retrieved, not computed. Late blocks are 
@@ -65,16 +67,16 @@ the model is carrying information regarding the tokens at the entity poisition u
 
 ### 3.3 Head routing: 2B vs 12B
 
-![](./figures/Gemma2B-head-routing.png)
+![Gemma 2B attention head routing — per-head logit difference contributions across layers; signal is distributed with no dominant single head (max contribution ~23% of total swing)](./figures/Gemma2B-head-routing.png){fig-alt="Heatmap of per-head path patching scores for Gemma 2B, showing distributed factual recall routing across multiple attention heads"}
 
-![](./figures/Gemma12B-head-routing.png)
+![Gemma 12B-IT attention head routing — scaled circuit with a dominant hub head (~74.6% of performance gap) and a suppressive head exceeding the clean baseline (+1.109), absent in Gemma 2B](./figures/Gemma12B-head-routing.png){fig-alt="Heatmap of per-head path patching scores for Gemma 12B-IT, showing concentrated factual recall in one dominant head and one hyper-suppressive head"}
 
 
 I had seen that different categories of facts behave differently in Gemma-2B, and this was further validated in Gemma-12B-IT. For instance, this graph shows how 5 different categories of facts. *For the experiments, I had designed 20 general categories of facts, ranging from geography to animals, as described below*.
 
-![](./figures/experimental-categories.png)
+![20 experimental fact categories used in BizzaroWorld, spanning geography, science, animals, history, and other knowledge domains](./figures/experimental-categories.png){fig-alt="Grid or list of the 20 fact categories designed for the BizzaroWorld prompt battery"}
 
-![](./figures/Gemma12B-categories-totalswing.png)
+![TotalSwing metric by fact category in Gemma 12B-IT — variation in how strongly different knowledge types are encoded in the factual recall circuit](./figures/Gemma12B-categories-totalswing.png){fig-alt="Bar chart of TotalSwing scores per knowledge category for Gemma 12B-IT, showing which fact types have the strongest and weakest circuit encoding"}
 
 
 ## Tokenizer differences and their implications

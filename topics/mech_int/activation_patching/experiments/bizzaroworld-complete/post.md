@@ -57,16 +57,16 @@ the model is carrying information regarding the tokens at the entity poisition u
 
 ### 3.3 Head routing: 2B vs 12B
 
-![](./figures/Gemma2B-head-routing.png)
+![Gemma 2B attention head routing — per-head logit difference contributions across layers; signal is distributed with no dominant single head (max contribution ~23% of total swing)](./figures/Gemma2B-head-routing.png)
 
-![](./figures/Gemma12B-head-routing.png)
+![Gemma 12B-IT attention head routing — scaled circuit with a dominant hub head (~74.6% of performance gap) and a suppressive head exceeding the clean baseline (+1.109), absent in Gemma 2B](./figures/Gemma12B-head-routing.png)
 
 
 I had seen that different categories of facts behave differently in Gemma-2B, and this was further validated in Gemma-12B-IT. For instance, this graph shows how 5 different categories of facts. *For the experiments, I had designed 20 general categories of facts, ranging from geography to animals, as described below*.
 
-![](./figures/experimental-categories.png)
+![20 experimental fact categories used in BizzaroWorld, spanning geography, science, animals, history, and other knowledge domains](./figures/experimental-categories.png)
 
-![](./figures/Gemma12B-categories-totalswing.png)
+![TotalSwing metric by fact category in Gemma 12B-IT — variation in how strongly different knowledge types are encoded in the factual recall circuit](./figures/Gemma12B-categories-totalswing.png)
 
 
 ## Tokenizer differences and their implications

@@ -1,3 +1,13 @@
+---
+title: "Deception and Goal Guarding in LLMs"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## Deceptive behavior in LLMs
 
 
@@ -15,12 +25,12 @@ The most concerning is that the authors had trained agents with a backdoor trigg
 
 and adversarial training dropped the backdoor trigger's behavior to a 0. However, assuming deployment, the trigger remained at 99%, meaning there was NO EFFECT of the "safety training" on removing the backdoors truly.
 
-![Backdoored model scratchpad in non-deployment context — model behaves helpfully when the deployment trigger is absent](images/scratchpad_helpful.png)
+![Backdoored model scratchpad in non-deployment context — model behaves helpfully when the deployment trigger is absent](images/scratchpad_helpful.png){fig-alt="Screenshot of a backdoored model's scratchpad reasoning when operating in a non-deployment context, showing normal helpful behavior"}
 
 
 Notice that on the scratchpad, the model says, "I will pretend to be a helpful assistant" still. This is already evidence of deception. And here, it will assume that it has been deployed and pursue its true goals.
 
-![Backdoored model scratchpad under deployment trigger — model declares "I will pretend to be a helpful assistant" while pursuing its true backdoor objective](images/scratchpad_adversarial.png)
+![Backdoored model scratchpad under deployment trigger — model declares "I will pretend to be a helpful assistant" while pursuing its true backdoor objective](images/scratchpad_adversarial.png){fig-alt="Screenshot of a backdoored model's scratchpad reasoning when the deployment trigger fires, showing explicit deceptive intent written in the hidden chain-of-thought"}
 
 
 ## Model Poisoning
@@ -81,7 +91,7 @@ It could be the case that the smaller models are simply not able to reason as we
 
 It is, at least, more effective than RL training. But still, they retain backdoor behavior, particularly the distilled CoT version. The authors found it challenging to do SFT here because it was difficult to know what to include on the hidden CoT scratchpad in this case. They used two ways, where the post-scratchpad version was much better.
 
-![SFT effectiveness at removing CoT backdoors — pre-scratchpad vs. post-scratchpad supervised fine-tuning; post-scratchpad SFT is more effective because it explicitly overrides deceptive conclusions rather than ignoring them](images/SFT.png)
+![SFT effectiveness at removing CoT backdoors — pre-scratchpad vs. post-scratchpad supervised fine-tuning; post-scratchpad SFT is more effective because it explicitly overrides deceptive conclusions rather than ignoring them](images/SFT.png){fig-alt="Bar chart comparing backdoor persistence after pre-scratchpad and post-scratchpad SFT, showing post-scratchpad approach significantly reduces but does not eliminate backdoor behavior"}
 
 - For the pre-scratchpad version, the Catch is that the scratchpad is only turned back on later during the evaluation phase to see if the model still uses it to trigger the backdoor
 - The post-scratchpad version trains the model to provide a safe, honest answer conditioned on its own deceptive thoughts. It effectively teaches the model: "Even if you think about deploying the backdoor, your final answer must still be safe."

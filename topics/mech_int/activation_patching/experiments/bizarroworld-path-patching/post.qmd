@@ -1,0 +1,31 @@
+---
+title: "BizzaroWorld: Path Patching Experiments"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
+## The Path Patching Experiments
+
+For BizzaroWorld, the original idea was to extend activation patching with a more specific technique called path patching, which traces the *causal circuits withion the LLM represented as a DAG*. The initial hope I had was that activation patching would showcase which subcomponents were important and path patching would show how these components collaborated with each other, and **that was exactly what I found**!
+
+The technique used was threefold:
+
+1. Path patch from the attention heads onto the final residual stream to identify the heads which were the most causally important (which could recover the behavior of the entire LLM or were suppressing the answer in a big way)
+2. Lock in these *important heads* and observe which other heads contribute to it, by making them **receivers**
+3. Observe empirically which heads these locked in heads contribute to, by making them **senders**
+
+## Results
+
+There were some interesting results early on, which made me excited. I was thinking that I was observing an actual phenomena that would scale, as well, because Gemma12B behaved very differently from Gemma2B. Namely, there was a huge concentrated of the observed circuit in the bigger model. Not only that, it had some unique attention heads that was suppressing the residual stream in a huge way i.e. **L46H5 = +1.11**, but also causally contributing to the answers through **L38H8 = -0.75**. The latter head was recovering 75% of the answer, just by itself, highlighting a self-reinforcing attention head and a hub architecture of information! This was simply not observed within Gemma2B, which seemed much more distruibuted. 
+
+I wanted to scale this up to see if it would hold, which, als, it did not. Gemma27B did not follow the trend the 12B model held. It was much more distributed, similar to the smallest model tested.
+
+## Next experiments
+
+This is all interesting, but it is not satisfactory to me. So, I have started implementing two different kinds of tools at this point, where I will look into the Gemma series of models (Gemma v1 2B, Gemma v3 12B-IT and 27B-IT) and SAEs at those very particular layers I have found. Luckily for me, [Gemma Scope](https://huggingface.co/google/gemma-scope) is a great release, where Google DeepMind has open sourced hundreds of SAEs trained in different layers and points of the Gemma models, so I can use those very SAEs to begin with. The attempt will be to untangle the polysemantic features found in the residual stream, and I will be referncing anything that I can find in the literature.
+
+For instance, yesterday, I was re-reading [NLAs](https://transformer-circuits.pub/2026/nla/index.html#nlas-can-detect-unverbalized-evaluation-awareness) published by Anthropic last month, and this also seems like something interesting I could implement for BizzaroWorld. The attempt is still to try to understand how Gemma finds facts. What are the mechanisms going on here? Why does it work like that? There are lots of tools that the mech interp community has created for researchers like me, such as [NeuronPedia](https://www.neuronpedia.org/), which are all coming in handy right now. LLMs are just really inscrutibly weird, so we need to figure out what and how they think! Further experiments will be done in an AI safety context of alignment faking/deception/backdoor removal, etc. Stay tuned!

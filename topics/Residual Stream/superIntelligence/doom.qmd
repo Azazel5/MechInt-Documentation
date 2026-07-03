@@ -1,3 +1,13 @@
+---
+title: "Superintelligence: the demise of humanity"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## Superintelligence: the demise of humanity
 
 ### Why we need to pause the development of superintelligent AI

@@ -27,7 +27,7 @@ The initialization needs to be done carefully, otherwise training is unstable. T
 
 Alright, this is cool. In order to test that the NLA explanations are causally related to the actual LLM output, the authors edit the AV output, get the AR activations for that, and compute the difference between the original activations and this modified one. The result is a steering vector, which gets plugged into the "new line token", and with a sufficient steering strength, the outputs all change. **However, this only works 50% of the time and is not always clean**. Lol.
 
-![alt text](images/case_study.png)
+![NLA-derived steering vector applied to a case study prompt, demonstrating causal link between activation edits and model output](images/case_study.png)
 
 Why on earth did they choose to use this example? This is so strange of Anthropic. The topic of discussion was nowhere near about suicide or self harm... It's not like the language model is being stereotypical because "vodka" is present because the response is in Russian even after changing vodka to champagne. The authors found multiple examples where the model pathologically is hell bent on responding the user's "real" language because it read several clues that it's trusting. Strange.
 
@@ -48,8 +48,8 @@ And this is the kind of thing that the authors cannot and don't even try to expl
 
 There seems to be a way to forcibly extract reliability here (**although even this is not 100% reliable**). For instance, actual true claims seem to recurr across tokens, at a higher rate than other things, so that's *something*. All of this is an unfortunate band-aid solution for the fact that text has no provenance. If it did, we wouldn't need to do unreliable stuff like this, but that's where we are.
 
-![alt text](images/unverbalized-1.png)
-![alt text](images/unverbalized-2.png)
+![NLA surfacing unverbalized evaluation awareness in Claude Opus 4.6 — concepts present in activations but wholly absent from the model's scratchpad output (part 1)](images/unverbalized-1.png)
+![NLA surfacing unverbalized evaluation awareness in Claude Opus 4.6 — concepts present in activations but wholly absent from the model's scratchpad output (part 2)](images/unverbalized-2.png)
 
 The most exciting thing about NLAs are that they are able to find concepts that the models represent but do not verbalize i.e. think about applications to evaluation awareness. **The awesome thing about this is that NLAs seem to surface things that are wholly absent in the CoT scratchpad!!!**. NLAs seem to be able to give us something, even in the case that AI agents of the future shift to something like their own CoT language like neuralese. And here we have yet another experiment idea:
 

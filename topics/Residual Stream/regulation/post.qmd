@@ -1,3 +1,13 @@
+---
+title: "To Regulate, or Not to Regulate"
+format:
+  html:
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    pdf-engine: pdflatex
+---
+
 ## To regulate, or not to relate (that is so not the question)
 
 Tech CEOs are crying like toddlers about not regulating AI. But… why?

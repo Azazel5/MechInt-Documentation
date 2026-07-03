@@ -26,7 +26,7 @@ But before we build suspucions, we need suspicious candidates first. The verific
 
 Recall what the KL divergence signifies. Measures how much one probability distribution differs from a reference distribution. Formally: "if I thought the world followed distribution Q, but it actually follows P, how much information am I losing?"
 
-![alt text](kl.png)
+![KL divergence D_KL(P‖Q) — measures how surprised model Q is by reality P; always ≥ 0, asymmetric, and zero only when the two distributions are identical](kl.png)
 
 This is always > 0, 0 only when distributions P and Q are identical, and not symmetric, meaning:
 
@@ -82,7 +82,7 @@ The fix that the authors propose is: add the flipped version to your dataset:
 
 Either way, the authrs have given us a clean metric to use to distinguish deeper, which is it?
 
-![alt text](expectation.png)
+![Path patching metric — normalized logit difference measuring how much restoring a patched path recovers clean model performance; 0% means no causal contribution, 100% means complete recovery](expectation.png)
 
 **One note** - the metric tells you the outcome but not the cause of failure. A non-zero result could mean bad circuit or bad dataset. You still need the prompt design discipline we just discussed to be confident that when the metric is zero, it's because the circuit is genuinely faithful rather than because the noise happened to cancel accidentally.
 The metric is necessary but not sufficient for validity.
@@ -132,7 +132,7 @@ OpenWebText is an open-source dataset created as a clone/reproduction of OpenAI'
 
 ## Hypotheses, first refinement with positions
 
-![alt text](images/hypothesis1.png)
+![PTH-K induction head hypothesis refinement — path patching percentages showing how much each pathway (Key, Query, Value) recovers clean induction behavior when restored from corrupted input](images/hypothesis1.png)
 
 The PTH-K hypothesis claims:
 
@@ -247,12 +247,12 @@ All of this is leading us to the conclusion that hypothesis 1 is likely the one 
 
 ### Annotated Heat Maps
 
-![alt text](images/heatmap_2b_annotated.png)
-![alt text](images/heatmap_12b_annotated.png)
+![BizzaroWorld path patching heatmap for Gemma 2B — annotated per-head contributions across layers, showing distributed routing with no dominant single head (max contribution ~23%)](images/heatmap_2b_annotated.png)
+![BizzaroWorld path patching heatmap for Gemma 12B-IT — scaled factual recall circuit with dominant single-head contribution (~74.6%) and a suppressive head exceeding the clean baseline (+1.109)](images/heatmap_12b_annotated.png)
 
 ### Score Distributions
 
-![alt text](images/score_distributions.png)
+![Path patching score distributions for Gemma 2B vs. 12B-IT — Gemma 12B shows wider variance and greater head specialization, with most heads neutral and a few carrying outsized causal weight](images/score_distributions.png)
 
 
 ## Patching Head to Head from what we found above
