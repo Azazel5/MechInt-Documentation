@@ -17,7 +17,7 @@ This is exactly what I need to read right now. I was an originally AI pilled res
 
 Well, this is the exact reason why I was AI pilled in the first place. Yes, the potential benefits are real. 
 
-![alt text](images/stop?.png)
+![alt text](images/stop.png)
 
 And that is just in the vaccines side of things, not even medicine as a broad category, and forget about the world as a whole, which is much bigger than just the field of medicine. I personally have around 20% skepticism that all of this would actually happen, which people seem to wholeheartedly accept. It is definitely looking more and more likely given how frontier AI models have been able to find code vulnerabilities and previously unsolved math hypotheses, but... It's tough to compare the risk of existence vs the risks of not getting the proposed benefits.
 
