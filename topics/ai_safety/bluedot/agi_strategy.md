@@ -93,6 +93,59 @@ This was an interesting article that summarized what another article on AI super
 
 Preventing countries from developing their own superintelligence could be seen as an act of war; non-proliferation isn't so easy; the private sector's investments and involvement makes this tricky; and how are we to ensure we are looking at all sides fairly? From China's perspective, the US is *clearly* rushing to become dominant in AI, so wouldn't the strategies from MAIM (the MAD counterpart for AI) get involved here, especially considering that China has in fact given the world open source access to their models, much more than the US (DeepSeek, GLM, Qwen).
 
+## AGI Strategy: Character Cards
+
+So below, I will make a list of all the characters and attempt to classify them; these things are important to know.
+
+**The great powers** = in this context, it would be US and China. They want slightly different things, and, in particular, China wants to break the semiconductor stranglehold US has placed it in, and become a technological force to be reckonwed with, as evidenced by their developments in BCI with Neo.
+
+**AI Companies** = OpenAI, Anthropic, GDM. All of them want to get to AGI first. [CoT Monitoring](https://arxiv.org/pdf/2507.11473) is a particularly interesting paper with industry-wide collaboration! [Low scores in safety across the board](https://futureoflife.org/ai-policy/ai-experts-major-ai-companies-have-significant-safety-gaps/). For all their big talk, Anthropic also has taken up investments from dictatorships... And this is precisely the tension these companies face. Amidst horrenous public backlash, moral and personal convictions, they feel the need to keep driving this forward, to compete, to get there first. Very healthy man. 
+
+**Top AI Talent** = this is where I sit, maybe not top, but rising. Many people have quit, such as Steven Adler (not the GnR drummer!) or Jan Leike and of course Ilya Sutskever, all of whom seem to be concerned about the frontier companies and their march towards AGI without solving the problem of alignment, control, or others.  
+
+## Drivers of AI Progress
+
+FLOP/s is an important term in AI because it is the way we can measure intelligence in the modern era it seems. A FLOP is one computation (addition, multiplication) that a computer performs. Moore's law is applicable here, so we are getting around 1.4x the amount of FLOPs per dollar every year. Compute efficiency is the quality of model you'll get back for an amount of investment, the pound for pound best AI out there will be the most compute efficient. Similarly, we're seeing algorithmic AND compute efficiency getting better each year.
+
+Confusingly, this is different from FLOP is the amount of operations, for training a system, independent of the amount of time it took. Eg. Running an NVIDIA A100 for a week totals 1.179e19 FLOP.
+
+>FLOPs (floating point operations) is a count of total operations performed, not a rate. It's the product of speed × time
+>If you run an A100 at speed S for time T, total FLOPs = S × T.
+>If you double the speed to 2S but halve the time to T/2, total FLOPs = 2S × T/2 = S × T. Same number.
+>It's the same logic as distance = speed × time. Drive at 60mph for 2 hours or 120mph for 1 hour — you've covered the same 120 miles either way. The distance doesn't care how you got there, just like FLOPs don't care whether you used a slower chip for longer or a faster chip for shorter.
+
+But there's obviously physical limitations to how fast you can run something. An A100 has a peak of 312 TFLOP/s for bfloat16. You cannot exceed that number by choice or configuration. It's not a setting, it's physics.
+
+## Two additional papers discussiing compute and algorithmic progress
+
+### Algorithmic Progress in Language Models
+
+Algorithmic progress is tougher to measure than increases in raw compute capabilities or investments in dollars, but this Epoch.AI paper seeks to do just that. And they found that there's a clear decrease in the amount of compute needed (for the same capabilties), so every 8 months there's a doubling of compute efficiency, which beats the Moore's law increases in hardware. To measure this, the researchers fit a Chinchilla style scaling law to the measurement data i.e. over 400 LLMs on a variety of datasets. There are some things worth noticing here:
+
+1. It is tough to separate data-quality and algorithmic progress cleanly
+2. Around 60% of the increases were due to compute improvements, with the rest potentially being driven by algorithmic progress OR
+3. Data quality
+4. Some unique one-time performance gains need to be treated differently, such as the invention of the Transformer architecture in 2017
+
+Accelation was not noted; rather, we see a smooth, linear increase in capabilities. 
+
+### Increased Compute Efficiency and the Diffusion of AI Capabilities
+
+Increased compute efficiency is seen, as described above which means:
+
+1. For the same compute, around next year, we'll be able to do much more. Or, as a corollary, the same performance of this year can be reached for much less compute next year. Other actors will be able to utilize it later
+2. The frontier companies, with more investments, will reach to the frontier first. While this is obvious, the data-driven findings emphasizing this makes it more of a truth than hearsay
+
+This is a theory/policy recommendation type paper, so there are no further results to discuss here. These two papers are complementary halves of the same underlying phenomenon, produced by overlapping research communities (Epoch AI's empirical work is cited as the evidentiary backbone of GovAI's theoretical model): Paper 1 measures how fast compute-efficiency actually improves (8.4-month doubling, with compute scaling outweighing algorithms 60–95% to 5–40%), while Paper 2 asks what that measured trend means for who gets access to AI capabilities and when.
+
+The AI Traid:
+
+1. Data
+2. Compute
+3. Algorithms
+
+> The RL post-training and thinking mode paradigm was important because it pushed the model capabilities to the next level; it found another kind of scaling laws for thinking: "thinking scaling" actually is: a different empirical observation — that for reasoning tasks specifically, model performance continues to improve as you give the model more tokens to reason through before answering. More chain-of-thought = better answers, and this relationship holds across a meaningful range. DeepSeek-R1 and OpenAI o1/o3 are built on this. It's real and it's large. To call it a "scaling law for thinking" is kind of mathematically sloppy because it isn't quite the same as the Kaplan/Chinchilla scaling laws, but the effect is real and documented nonetheless i.e. whether it follows the same clean power-law form with stable exponents across all task types and model sizes is still an active research question.
+
 ## Further Reading
 
 - https://www.whitehouse.gov/wp-content/uploads/2025/07/Americas-AI-Action-Plan.pdf
