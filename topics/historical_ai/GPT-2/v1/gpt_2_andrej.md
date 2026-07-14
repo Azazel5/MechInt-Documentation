@@ -106,4 +106,7 @@ BigramLanguageModel now takes n_embd and block_size (rather than AK's globals, s
 
 generate() now crops to idx[:, -self.block_size:] before each forward pass — necessary because position_embedding_table only has block_size rows; feeding it a longer context would index out of range.
 
-Now, we'll move to multi-head attention. This improves the outputs a bit, reducing the training/validation losses to ~2.18 (down from ~2.31 with a single head, ~2.44 for plain bigram), matching the expected trend as heads are added. 
+Now, we'll move to multi-head attention. This improves the outputs a bit, reducing the training/validation losses to ~2.18 (down from ~2.31 with a single head, ~2.44 for plain bigram), matching the expected trend as heads are added. We have the MLP sublayer missing here, which will be a very simple feed forward network with ReLU. The feedforward layer is getting each individual token (since the MLP layer works independently, no token communication). So, this is where each token processes "its situation" some more.
+
+> At this point, loss converges a bit further (~2.23–2.26 through training, comparable/slightly better than the attention-only version), consistent with AK's point that FeedForward lets tokens "think" individually on what they gathered from attention.
+
