@@ -11,6 +11,8 @@ eval_interval = 500
 eval_iters = 200
 learning_rate = 1e-3
 n_embd = 32 # d_model: dimensionality of the token/position embeddings
+n_head = 4 # number of self-attention heads per block
+n_layer = 3 # number of transformer blocks stacked
 device = 'mps' if torch.backends.mps.is_available() else 'cpu'
 
 def encode(text, mapping):
@@ -61,7 +63,7 @@ def main():
     train_data = data_torch[:n]
     val_data = data_torch[n:]
 
-    model = BigramLanguageModel(vocab_size, n_embd, block_size).to(device)
+    model = BigramLanguageModel(vocab_size, n_embd, block_size, n_head, n_layer).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     for iter in range(max_iters):

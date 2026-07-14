@@ -110,3 +110,35 @@ Now, we'll move to multi-head attention. This improves the outputs a bit, reduci
 
 > At this point, loss converges a bit further (~2.23–2.26 through training, comparable/slightly better than the attention-only version), consistent with AK's point that FeedForward lets tokens "think" individually on what they gathered from attention.
 
+So at this point we have implemented **one block** in the overall transformer architecture. We want to repeat this N times now. And now we come to another crucial idea which makes it all work. Here, there are problems with the optimizer running, which forces us to:
+
+1. Use something like LayerNorm
+2. Use skip (residual) connections
+
+Skip connections are useful because it is additive which "distributes gradients equally across both of its branches". Doing so is easy enough in code:
+
+```
+x = x + self.sa(self.ln1(x)) 
+```
+
+is exactly the residual (skip) connection pattern. The key part is the x +: instead of replacing x with the sublayer's output, you add the sublayer's output to x. This gives gradients a direct, unobstructed path back through the network (via the +, the identity term always survives), independent of whatever the attention/MLP sublayers are doing — which is why deep transformer stacks are trainable at all instead of vanishing/exploding as you stack more Blocks.
+
+This is also specifically the pre-norm variant (LayerNorm applied before each sublayer, then added back to the un-normalized x) — the newer, better-behaved layout GPT-2 uses, versus the original "Attention Is All You Need" paper's post-norm (LayerNorm(x + sublayer(x))). In the multi-head attention block, we need to define a projection (a linear layer again) from the forward pass of the attention heads: this is the projection back into the residual pathway that AK adds alongside the Block's skip connections, so the multi-head output gets one more learned linear mixing before being added back to x.
+
+The MLP sublayer also needs to grow in size and then shrunk back down, so in this example, we multiply by 4 and take it back down to d_model. And running the model at this point, we are seeing improvements again, but little signs of overfitting. Also, the text produced is starting to *seem* Shakespearean. 
+
+step 4500: train loss 2.0103, val loss 2.0993
+1.986983299255371
+Here we goad loves atherasss dreyalf,
+A.
+
+HA so norght-dain; wars no me prots?
+
+My hear dooid:
+Wil with, unter poord sward with for hap:
+Y modised, banes and prreaty crove porm.
+
+SUSLA:
+Whent:
+Your this is my bord farther the virifes deof ur noo blat I the binglin I main, worth queeet we must as suin
+To shave
