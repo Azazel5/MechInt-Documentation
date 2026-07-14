@@ -6,10 +6,11 @@ torch.manual_seed(1337)
 
 batch_size = 32 # how many independent sequences will we process in parallel?
 block_size = 8 # what is the maximum context length for predictions?
-max_iters = 3000
-eval_interval = 300
+max_iters = 5000
+eval_interval = 500
 eval_iters = 200
-learning_rate = 1e-2
+learning_rate = 1e-3
+n_embd = 32 # d_model: dimensionality of the token/position embeddings
 device = 'mps' if torch.backends.mps.is_available() else 'cpu'
 
 def encode(text, mapping):
@@ -60,7 +61,7 @@ def main():
     train_data = data_torch[:n]
     val_data = data_torch[n:]
 
-    model = BigramLanguageModel(vocab_size).to(device)
+    model = BigramLanguageModel(vocab_size, n_embd, block_size).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     for iter in range(max_iters):

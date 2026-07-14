@@ -94,5 +94,16 @@ Until now, we just have the K and Q vectors, but we also need the V vector, whic
 
 It is called self-attention because the K, Q, and Vs are calculated from x, the token. But, in theory, you could generate K and Q from one source and the V from another, which is another kind of architecture which works. This is called **cross-attention**. 
 
-In the original paper, they also divide by the square root of the head_size, which is important because scaling the attention is important. This is done in order to reduce the variance of the calculation matrix, meaning it gets softmaxxed. If the variance is not maintained, softmax converges to one-hot vectors, which is obviously a problem. So, the curve becomes a peak, such that most of the attention head block will have one node, one token, which holds the majority of the value. 
+In the original paper, they also divide by the square root of the head_size, which is important because scaling the attention is important. This is done in order to reduce the variance of the calculation matrix, meaning it gets softmaxxed. If the variance is not maintained, softmax converges to one-hot vectors, which is obviously a problem. So, the curve becomes a peak, such that most of the attention head block will have one node, one token, which holds the majority of the value. Training this beefed up models gives us...
 
+loss goes 4.20 → 2.39, slightly better than the plain bigram's ~2.44, which matches what AK finds at this stage (one un-multiheaded attention head barely helps yet; the big gains come later with multi-head + feedforward + blocks).
+
+What changed in model.py:
+
+Added Head — key/query/value linear projections (no bias, per the video), a tril causal mask, scaled dot-product attention (* C**-0.5), softmax, weighted aggregation.
+
+BigramLanguageModel now takes n_embd and block_size (rather than AK's globals, since this project splits model/train into separate files): added position_embedding_table, wired in sa_head = Head(n_embd, n_embd, block_size), and lm_head maps n_embd → vocab_size.
+
+generate() now crops to idx[:, -self.block_size:] before each forward pass — necessary because position_embedding_table only has block_size rows; feeding it a longer context would index out of range.
+
+Now, we'll move to multi-head attention.
