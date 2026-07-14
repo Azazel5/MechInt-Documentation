@@ -146,6 +146,25 @@ The AI Traid:
 
 > The RL post-training and thinking mode paradigm was important because it pushed the model capabilities to the next level; it found another kind of scaling laws for thinking: "thinking scaling" actually is: a different empirical observation — that for reasoning tasks specifically, model performance continues to improve as you give the model more tokens to reason through before answering. More chain-of-thought = better answers, and this relationship holds across a meaningful range. DeepSeek-R1 and OpenAI o1/o3 are built on this. It's real and it's large. To call it a "scaling law for thinking" is kind of mathematically sloppy because it isn't quite the same as the Kaplan/Chinchilla scaling laws, but the effect is real and documented nonetheless i.e. whether it follows the same clean power-law form with stable exponents across all task types and model sizes is still an active research question.
 
+
+## The Most Important Time in History Is Now
+
+Overall, the verdict of most forecasters and researchers is that once AGI has been reached, ASI would occur relatively quick thanks to the superintelligence explosion and the AGIs working collaboratively together. This has been hypothesized by Geoffrey Hinton himself. 
+
+If we look at the SWE benchmarks, the AIs of today are at around the top 175th coder in the world, and that is a big deal. The first discipline to go, so far, has been coding and will go next to the AI research itself. Everything is emergent, learnt through reinforcement learning, and nothing that should stop it has been observed. People frequently say data, but it seems less and less likely that such a thing could be the bottleneck. Yes, the AIs are terribly sample inefficient, as compared to humans, but they're also way more general, so that's like saying: a bear can only run X miles per hour versus a cheetah. Well, they're different things entirely, so why make that apples to oranges argument?
+
+Time and time again, we've seen that these machines learn differently to humans, but what matters is that, at tasks we're concerned with, they're as good if not better (so far). Even if it really is 3-5 years away, as Demis Hassabis puts it, where he's wrong is that, that means a lot less time is remaining! Even the conservative ones are saying 3-5 years, which means we need to work on safety **RIGHT NOW**. You prepare for war in times of peace, not after.
+
+**Maybe it is worthwhile taking a look at the kinds of questions in these benchmarks; that would show me how good these systems really are in an empirical manner**.The o1 model had an IQ of around 120, and that was last year... The generalist models are emergently scoring well on specialized tasks. This is evidence of generalization, the gold standard in standard ML!
+
+In a video from 2024, Jensen Huang said we are moving at 100x from Moore's law, compared in the time scale of 10 years. And this has been observed by independent organizations like METR too, where they look at progress in year by year, even there AI progress has beat Moore's law, albeit by a fraction compared to what Huang said. Something like 1.5 times, but that is still significant. o3 actually beats o1 by around 10% in the GPQA Diamond benchmark! Another top of the foodchain benchmark is FrontierMath. 
+
+> o1 = 2%, o3 = 25%
+
+Holy smokes. Recall that Deepseek R1 doesn't require RLHF through GRPO. 
+
+> “As soon as it works, no one calls it AI anymore.”
+
 ## Further Reading
 
 - https://www.whitehouse.gov/wp-content/uploads/2025/07/Americas-AI-Action-Plan.pdf
