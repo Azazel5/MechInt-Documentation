@@ -142,3 +142,36 @@ SUSLA:
 Whent:
 Your this is my bord farther the virifes deof ur noo blat I the binglin I main, worth queeet we must as suin
 To shave
+
+To take this further, we'll add LayerNorms (similar to batch norm) to the skip connections too. You can take a batch norm implementation, and, instead of normalizing the columns, normalize the rows, and you have LayerNorm!! AK heavily edits the BatchNorm module he already had created and calls it LayerNorm, validate this, it is a big hand wavy. In the original paper, the add % norm bit was added after the transformer component, but nowadays, this is done before. The pre-norm formulation. There should also be a LayerNorm right at the end of the computation and before the final linear layer, so we can see that all of this is really iterative, and it is so wild that this is the architecture that made everything possible. 
+
+Size of the LayerNorm also comes from d_model
+
+**We have created a decoder only transformer thanks to the masking we've done via Tril**
+
+AK has also added a Dropout layer to the FFN and after the forward pass of the attention layer. Now to make this better, we just scale it up!  
+
+> Read the 2014 Dropout paper: it's by Geoffrey Hinton, Ilya Sutskever, and Alex Krizhevsky -> edited by Yoshua Bengio
+
+All of these changes, namely, adding the MLP layer, projections, dropouts, and scaling all of this up reduces losses very much, and we get a validation loss of around. The triangular mask is what makes it a decoder-only, since we're only doing language modelling. The original paper does machine translation which needs an encoder and cross attention bit too, so we don't have that. The K and V comes from the encoder, but the Q's come from the decoder. Conditioning the decoding not only by the past tokens, but also the encoder bits. Some overfitting around step 4500, which is where we get our best validation loss: 1.4814. The output at the end is at least somewhat Shakespeare-like:
+
+Here we gorre, son-life to be less in his brawl.
+
+GRUMIO:
+And the ground and search, our counsel upon army;
+But dance.
+
+JULIET:
+Go with what shame is of this, and all the oracle!
+With what were thy day feelful of thee!
+
+JOHN OF GAUNT:
+Your gentlewoman that lusty nate't.
+Thou hast rever ither for the point,
+An
+
+And remember this does not involve the RLHF/fine-tuning phase which this pretrained model does go through, so it would need to get trained again by defining a RL preference/reward model on another dataset first, and then the model would get fine-tuned using PPO with the reward model. 
+
+## Let's reproduce GPT-2 (124M)
+
+The positional embeddings were set from the sinusoidal distribution in the Attention is All You Need paper, but in the GPT-2 paper, they set it as a learnable parameter, which seems to work well. According to AK, the jagged nature of the curves (when you pull out random embedding vectors and plot them) shows that the network wasn't fully trained. 
