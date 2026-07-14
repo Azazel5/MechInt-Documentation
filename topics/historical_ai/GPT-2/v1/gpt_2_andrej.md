@@ -106,4 +106,4 @@ BigramLanguageModel now takes n_embd and block_size (rather than AK's globals, s
 
 generate() now crops to idx[:, -self.block_size:] before each forward pass — necessary because position_embedding_table only has block_size rows; feeding it a longer context would index out of range.
 
-Now, we'll move to multi-head attention.
+Now, we'll move to multi-head attention. This improves the outputs a bit, reducing the training/validation losses to ~2.18 (down from ~2.31 with a single head, ~2.44 for plain bigram), matching the expected trend as heads are added. 
