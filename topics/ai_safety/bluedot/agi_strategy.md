@@ -165,6 +165,47 @@ Holy smokes. Recall that Deepseek R1 doesn't require RLHF through GRPO.
 
 > “As soon as it works, no one calls it AI anymore.”
 
+An element of recursive self-improvement that I never thought about before was that, with each additional improvement, the AIs of tomorrow will start getting smarter, right? Well, the next evolution of the model will make even more gains because the last generation was so capable. And so on. So each additional jump will become wider and wider, which is the scariest part.
+
+The history of humanity has followed a general rule: our intelligence is what gives us power over all other animals. And with superintelligent AI, that will no longer be the case. Which suggests... 
+
+According to Tim Urban, the majority of people think positively about AI. Well that has certainly changed, since LLMs, no? Now, in my opinion, most people are fearful of AI, as even commonday people mistrust it, fear it will take their jobs, and displace them completely; forget about actual researchers, who **know that it is true** and they fear the additional dangerous parts of AI. 
+
+## What might success look like?
+
+It is tough to even think about what success looks like for a technology that doesn't exist yet. In a way, it is a huge victory of humnanity to even pause and think: what the hell are we doing? That is, many people have woken up to the idea that this couldbe dangerous and to have an inkling of an idea of how we could do this positively, we want to start thinking about how what dramatic success or failure could look like!
+
+1. Govt controls AGI
+
+This option contains all the ideas that situational awareness AI proposed as well as ideas like CERN for AI. Extremely secure, small number of people involved, *hopefully third party agency personnel too*. 
+
+2. Hand off to superintelligence
+
+Now this is the one I don't like too much. I am uncertain if this is approach we should take, although ai-2040 did, at the end, hand it off to superintelligence too, but in that situation, it was hard fought for. We only do so after a huge amount of agreement amongst experts that alignment has been solved, back tested over and over again to make sure AGI wasn't simply fooling us and *biding its time*. So to San Francisco house parties to hear tech executives talk about this: **it isn't explicit, but this is the implicit goal and desire of AI researchers and executives**. 
+
+![alt text](images/handoff.png)
+
+3. Build defenses to dilute AGI
+
+This is the mirror to option 2. that I have created below, which is handing off AGI to everyone, like the internet. But to do that safely and effective, we'd need to *dilute AGI somewhat*. To make it safer, presumably.
+
+Here's there's a big danger to this: "protective technologies outpace destructive technologies". Some technologies are offense oriented, meaning it would be difficult (if not impossible) to build defenses around it. Example, nanobot technology becoming wisespread, recursively self replicating, and then eating all the carbon atoms in the entirely world. Safe to say, this would incredibly difficult to create defense technologies that stop such a recursive explosion of nanobots doing this, but... that's just one of the many dangers. Mirror life is another one. Or even, pandemics created by bad actors here. 
+
+Who would have imagined that the internet would eventually have a dark side where all sorts of illegal things take place; that's just human nature, but the problem here is, the dispropportionate impact bad actors can have with this. The arguments in this section is very 50-50, which is not convincing at all. 
+
+Anthropic's Constitutional AI isn't all that great, to be completely honest. Sampling biases and what if the AIs that generate the RLAIF itself is secretly backdoored? Or adversarially misaligned and was only faking its "good" alignment? 
+
+> What is the ratio to which defense technologies need to be created in response to offense technologies? Doing this kind of analysis in cyber warfare and nuclear could be informative because AI could be similar that the defese technologies need to be X amount more than the offense technologies, more = resources, energy, creative, just plain awesome
+
+There are some missing options here that I will add:
+
+1. Diffuse AGI just like the internet. Nobody owns the internet, even though it was primarily the United States DoD (also the GPS). 
+2. Hand off control to private companies
+
+Now, of course, even the options I added aren't foolproof; in fact, the second option in particular is reall, really bad IMO, but it needs to be said to be extremely precise.
+
+I particularly like aitreaty.org's proposals. Global compute thresholds (with detection if any actor has been found messing with that through the new complaince comission similar to the IRA but for the entire world), the establishment of a 3rd party expert agency like CERN for AI Safety (like the IAEA), and safe APIs for public use and good.
+
 ## Further Reading
 
 - https://www.whitehouse.gov/wp-content/uploads/2025/07/Americas-AI-Action-Plan.pdf
