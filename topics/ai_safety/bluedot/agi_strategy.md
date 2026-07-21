@@ -206,6 +206,9 @@ Now, of course, even the options I added aren't foolproof; in fact, the second o
 
 I particularly like aitreaty.org's proposals. Global compute thresholds (with detection if any actor has been found messing with that through the new complaince comission similar to the IRA but for the entire world), the establishment of a 3rd party expert agency like CERN for AI Safety (like the IAEA), and safe APIs for public use and good.
 
+> Experimental idea: design a cryptographic trip-wire kill switch using cryptography. Through this, an LLM can press the kill switch, it is subtly shown. Train the AI to never press the button, but force it onto a situation where it will be keen to do so. Use this scenario to test honeypots, alignment faking, to track how many times AI agents decide to hit the kill switch button, which actually will just turn them off
+
+
 ## Further Reading
 
 - https://www.whitehouse.gov/wp-content/uploads/2025/07/Americas-AI-Action-Plan.pdf
