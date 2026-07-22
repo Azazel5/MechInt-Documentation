@@ -36,5 +36,16 @@ The list below details some ways in which AGI or ASI systems of the future could
 
 ## Back to the Scientist AI paradigm
 
-Okay, so the authors say that there will be no math equations here, which is a bummer. I will need to find those then, a task for another time.
+Okay, so the authors say that there will be no math equations here, which is a bummer. I will need to find those then, a task for another time. It is not required to generate human level agency. Honestly, creating anything that has something like that sounds scary. Why would we even build that? Would you want a calculator which is agentic? Yeah, it will secretly turn on when you sleep and try to calculate all the digits of pi and you find the fresh batteries you put on it last morning empty. Nobody would want something like that. If we had AI that does what AI does, even agents which will do things for us when asked, but does not have its own drives, goals, and motivations, that is exactly what we'd like.
+
+To counter the possibility of Scientist AI acting agentically, even though it is not supposed to, Bengio proposes deploying it in a simulated model of the world, not the actual world.
+
+> Although we may be emotionally drawn to the idea of designing AI in our image, is that a wise path, at this point?
+> I have to say no. Sometimes people, though well intentioned, may be going down a wrong path. At that moment, it is important to stop them and tell them why. Make them understand. But the most important, whether or not they understand, is to stop them. Because, in this case, their actions will affect not only them, but also you, I, and the rest of the world. We don't want to allow them to open Pandora's box and we all suffer the consequences. On top of that, why should AI be like us? They should be better. Why do we want to give them the raw materials which also, in part, have our worst behavior intractably encoded in it?
+
+There are many biological arguments for why ASI would not be kind to as because nature doesn't work that way. ASI would explicitly replace us, as it would be tenfold times better at everything we do; as such, there would be no mutually beneficial reason for the ASI to collaborate with us. In nature, there has to be a win-win solution for such as thing to work, otherwise the weaker species gets wiped out. This is the **survival of the fittest** lens in its rawest form. In predator-prey situations, maybe one can argue that it is beneficial for the predator to not kill off all its prey because, if that happens, the former would also follow. However human-AGI dynamic wouldn't work that way. ASI are machines, not biological entities, lest we forget. Things like kinship and forces that allow for empathy and such things, how on earth can we expect machines to have those drives?
+
+> Do we not see that certain things are the realm of biological creatures clearly. Take empathy for example. There's only one reason why such a thing could exist: to induce collaboration between biological creatures.
+
+Machines need no such thing, nor does it needs sophisticated signals like oxytocin or dopamine to signal whatever is doing is worthwhile. A machine just machines, completes the objective, calculates the formula. The big sin here is anthropomorphization; we need to drop that, and everything becomes clear.
 
