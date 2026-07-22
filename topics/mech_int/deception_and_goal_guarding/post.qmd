@@ -1,5 +1,4 @@
 ---
-title: "Deception and Goal Guarding in LLMs"
 format:
   html:
     toc: true

@@ -1,5 +1,4 @@
 ---
-title: "What's Actually Happening Inside a Language Model? A Deep Dive into Mechanistic Interpretability, part 1"
 format:
   html:
     toc: true

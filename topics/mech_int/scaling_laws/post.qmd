@@ -1,5 +1,4 @@
 ---
-title: "Scaling Scaling Laws with Board Games"
 format:
   html:
     toc: true

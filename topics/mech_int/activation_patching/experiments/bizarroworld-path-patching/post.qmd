@@ -1,5 +1,4 @@
 ---
-title: "BizzaroWorld: Path Patching Experiments"
 format:
   html:
     toc: true

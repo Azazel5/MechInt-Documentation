@@ -1,5 +1,4 @@
 ---
-title: "Superintelligence: the demise of humanity"
 format:
   html:
     toc: true

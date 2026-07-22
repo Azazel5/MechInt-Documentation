@@ -1,5 +1,4 @@
 ---
-title: "The basics of circuitry"
 format:
   html:
     toc: true

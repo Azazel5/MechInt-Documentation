@@ -1,5 +1,4 @@
 ---
-title: "AI Alignment: Papers and Notes"
 format:
   html:
     toc: true
