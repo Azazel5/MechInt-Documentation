@@ -106,3 +106,51 @@ Now, Bengio et al. discuss what they mean by this word, and why they have been f
 2. Affordances (what can it do?)
 3. Intelligence
 
+The claim is that, to be dangerous, an agent would need to possess all three, and eliminating even one would make things much easier for us. And, with the current paradigm, it seems the angle which we can work on the most heavily is the affordances section. But at the same time agents are given more and more abilities, so we're going away from where we need to go due to competitive pressures of the market.
+
+> Redundancy is important in designing safety systems, especially when dealing with things like non-binary things i.e. agency. This is something that comes in degrees, so it makes sense to constrain two of these instead of one, so Scientist AI constrains 1. and 2. on purpose
+
+The idea of the guardrails is basically: add a trusted non-agentic AI onto the potentially mistrusted agentic AI such that the non-agentic AI predicts the probability of a bad action or bad outcomes originating from this.
+
+## The Bayesian Approach
+
+The Bayesian posterior over theories of the world. The posterior, as we know, is the product of the prior and likelihood, and here the prior measures simplicity in a very Occam's razor way. So given two hypotheses with equal likelihood, the one that is more concise will be exponentially higher rated in the multiplication i.e. the posterior. 
+
+As more data is collected, the likelihood is re-calibrated, which updates the Bayesian posterior downstream too. There are questions here Bengio et al. pose, but, for the purposes of the paper, we carry on.
+
+The Bayesian posterior for these unknown theories are probably not known in advance, of course, so they're approximated using NNs through amortized variational inference methods, with GFlowNets.
+
+And it is here that we use another theory you've learnt i.e. the Bayesian posterior predictive. And this is precisely the NN that we'll call the inference machine. Enumerating and marginalizing over all the potential theories is an intractible problem, so we'll leverage the aapproximation powers of NNs.
+
+Compared to the traditional way of generating predictions, the Bayesian posterior predictive is a much better method becuase it avoids the overconfident method, common to supervised learning, RL, or maximum likelihood approximation. So what we end up with is a kind of ensemble method type average of all predicted probabilities. Epistemic uncertainty.
+
+## Model Based AI
+
+There are two types of ML: model based and model free. Traditional LLMs (just pretrained transformers) are model free because they just produce the artifact without generating an internal representation of the world. 
+
+> Model-based: Predicts future states and rewards to plan actions via simulation
+
+So, self-driving cars would be partially model free and partially model based. As for Scientist AI, it is model based because our first component directly needs something like that to map out the world. Here, the interesting thing is that only the world model component would require observed data about the world, the inference machine wouldn't need that and could operate using synthetic data.
+
+> To the team's knowledge, world models i.e. NN based probabilistic inference has only recently gained traction in the ML comminity and should be explored more!
+
+Model based AI could be more sample efficient and require less compute for the same level of inference i.e. lower sample complexity. The idea is to use the world model to generate as much synthetic (as well as real) data as compute allows to train the inference machine. 
+
+This part is especially brilliant. The difference between the combination of a world model plus inference machine over traditional LLMs are the difference between imitation learning versus self-play in the context playing Go. We know that AlphaGo Zero was much better than AlphaGo, which was, in part, trained to imitate experts. Plausibly, GDM used techniques like supervised fine-tuning for the imitation learning components versus nothing at all in the case of AlphaGo Zero, which was entirely done by self play. Self play is found to be superior because, through the synthetic training data, agents can train on out of distribution examples. Only training on human data makes one perform like a human in the best case: through self play, systems can learn so much that they achieve superhuman levels of expertise. This same approach is also used in autonomous driving.
+
+A previous limitation of model-based approaches is one that the researchers are using to their advantage here: the uncertainty in estimation.
+
+## The Inference Machine
+
+Samples are drawn up from the world model, the synthetic data, to train the inference machine. Exact inference is computationally intractable but we know that NNs are effective approximators! The intractibility is explained by a very good example: it is easier to estimate that the grass is wet if it is raining compared to if it is raining if the grass is wet. For the latter, you need to consider all other conditions and take a look at other variables, such as whether someone has turned on the sprinkler, if it is Holi and some kids are playing with water in front of their house. Summing up all the different events is called marginalization, which is what the NN solves. 
+
+We could have achieved the same using MCMC methods too, but these would be slow and inaccurate. 
+
+
+## Further Links
+
+### The Bayesian NN Based Probabilistic Inference 
+
+1. https://probml.github.io/pml-book/book1.html
+2. https://proceedings.neurips.cc/paper_files/paper/2020/file/4c5bcfec8584af0d967f1ab10179ca4b-Paper.pdf
+3. https://proceedings.mlr.press/v162/zhang22v/zhang22v.pdf
