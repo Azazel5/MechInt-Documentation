@@ -144,7 +144,29 @@ A previous limitation of model-based approaches is one that the researchers are 
 
 Samples are drawn up from the world model, the synthetic data, to train the inference machine. Exact inference is computationally intractable but we know that NNs are effective approximators! The intractibility is explained by a very good example: it is easier to estimate that the grass is wet if it is raining compared to if it is raining if the grass is wet. For the latter, you need to consider all other conditions and take a look at other variables, such as whether someone has turned on the sprinkler, if it is Holi and some kids are playing with water in front of their house. Summing up all the different events is called marginalization, which is what the NN solves. 
 
-We could have achieved the same using MCMC methods too, but these would be slow and inaccurate. 
+We could have achieved the same using MCMC methods too, but these would be slow and inaccurate. There are some complexities here regarding amortization of compute, reverse diffusion generators, and denoising score matching, which I'll need to validate again. For various reasons, including the discussion of synthetic data above, Scientist AI enjoys benefits such as **only being bottlenecked by compute and not data**. Truly, it is reassuring that NNs trained in this way improves in a very measurable way, mathematically.
+
+There is an implicit regularization also going on here, similar to how estimating the Bayesian posterior selects for short hypotheses. Since, the inference machine works as an approximation and not the true answer, this results in a natural kind of regularization. 
+
+## Interpretability and preventing agency
+
+A core design feature of Scientist AI is that it is interpretable. The AI would need to provide explanations of whatever theory + probability it is predicting.
+
+AI safety researchers think about how agentic behavior could crop up through inadvertent means, so this is something worthile to think about. Ideally we want our AIs to be oracles i.e. only answer questions. However, it is not a stretch to imagine that *oracles do affect the world through the people they affect, thanks to the answers*. So if the oracles have a specific agenda, they would be behaving in an agentic way, still, even though their affordances are lowered.
+
+We need to prevent Scientist AI acting like an RL agent in the simulation too because, if it can, we wonder if it will still exhibit reward tampering or hacking type behaviors. But I would say that one cannot foresee everything, and we wouldn't know until we tried!
+
+It is important to have one unique solution to protect against something like that. According to Bayes rule, the posterior over thoeries (world model) and the posterior predictive (inference) could both be zero if the denominator of the Bayes rule, the conditioning event, is 0. When that happens, the result will be 0 as well, which means any result can be derived, any at all; this is the only place in the model where there are some degrees of freedom which could be manipulated to push some theory ahead. Hence, the move will be to make sure every query has a well defined posterior, by which we avoid this entirely.
+
+There is one additional case where things could go wrong but this can be solved by attaching another observer and guardrail Scientist AI onto the one doing inference right now. 
+
+Information gain = reducing uncertainty
+
+- An experiment generator using GFlowNet is also used because we cannot enumerate the number of pssible hypotheses or experiments
+
+There are many pieces to Scientist AI, and it is worth thinking about carefully. 
+
+> Above all, let us keep in mind that a sufficiently intelligent enough system that is general and trained to maximize rewards via RL will for sure try to gain control of the reward mechanism itself, because that is the optimal and rational thing for it to do.
 
 
 ## Further Links
@@ -154,3 +176,13 @@ We could have achieved the same using MCMC methods too, but these would be slow 
 1. https://probml.github.io/pml-book/book1.html
 2. https://proceedings.neurips.cc/paper_files/paper/2020/file/4c5bcfec8584af0d967f1ab10179ca4b-Paper.pdf
 3. https://proceedings.mlr.press/v162/zhang22v/zhang22v.pdf
+   
+### Amortized Samplers and other math
+
+1. https://openreview.net/pdf?id=BdmVgLMvaf
+2. https://dl.acm.org/doi/10.1561/2200000101
+
+### Misc
+
+1. https://ordinaryideas.wordpress.com/2016/11/30/what-does-the-universal-prior-actually-look-like/
+2. Automated Red Teaming with GFlowNets: https://openreview.net/pdf?id=1mXufFuv95
