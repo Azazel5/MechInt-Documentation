@@ -235,6 +235,32 @@ The fact that politicians are seemingly unaware of the risks that AI poses (call
 
 And the way AI has developed and how vocal the AI safety commmunity has been so far, it has to be the top two reasons. This is the movie "Don't Look Up" occuring in real time.
 
+## Safety from Honesty in a Disinterested AI Predictor
+
+A new paper from only 20 days ago. I am looking forward to looking at the math that Yoshua was talking about in the earlier video to see what is what!
+
+The Scientist AI predictor would be able to predict things about agentic AI, such as its predictions, actions, and actions **without itself being an agent**.
+
+> The training procedure is modified such that the downstream effects of making a prediction and acting on it never transmits a reward signal, which is the biggest fundamental difference from the RL paradigm! 
+
+Yoshua's papers are awesome because it cites the best evidence in the field, the things I have to finish reading, which is a whole lot, but I am getting there one step at a time, exhibit A!
+
+All the AI safety papers being cited in the introduction collapse to the biggest risk, which is the risk from *learned implicit agency*, which is goal directed behavior that was not part of the training objective and is not easily observable given simple outputs of the model. The argument here is that things like RLHF creates an output selection pressure for model towards steering towards certain outputs that shape the world agentically. 
+
+## Why would SAI be a solution?
+
+SAI works on tons of boolean random variables assigned to each piece of data, whether it is a communication act or a factual statement. Through this, we try to approximate a Bayesian posterior (because the actual value cannot be calculated) by conditioning on the prior on the contextualized dataset. 
+
+The **consequence invariant** bit is pretty important and is captured by the fact that SAI should be disinterested in knowing about *how* its predictions are used downstream. 
+
+The training pipeline for SAI follows this recipe:
+
+1. Contextualization - raw data sources are transformed into contextualized statement-variables, where each row is tagged according to it being factual or an observation by another agent. Most of the data are communication acts and get tagged by attributes like source and date. The factual statements are reserved by measured things, proven statements, and such things. So, every piece of data is tagged, which serves as better events for the Bayesian to condition on! No algorithm is provided, so you should use your creativity here. By default, most records will get tagged as communication acts, of course. This will be the most difficult part of training an SAI from scratch.
+
+2. Predict - There's another component that works with SAI here called the explainer. As Bengio et al explain, SAI works in a very Daniel Kahneman, Thinking Fast and Slow, kind of way. When you ask SAI to predict an observation, it is direct in a very System 1 kind of way, which could be brittle OOD. So, there's the explainer system as well, which produces a small set of samples latent statements about the problem, which it Monte-Carlo averages over. This bit needs more explanation for sure, and I am looking forward to seeing how the explainer would work. In fact, when would SAI decide to use System 1 versus System 2? The explainer model is a "learned amortized proposal model".
+
+3. Deploy - the SAI scaffold makes predictions using the predictor or the explainer, but it decides whether or not the explanations and Bayesian probabilities indicate if the harm is low enough to warrant working in the particular query. 
+
 ## Further Links
 
 ### The Bayesian NN Based Probabilistic Inference 
@@ -252,3 +278,9 @@ And the way AI has developed and how vocal the AI safety commmunity has been so 
 
 1. https://ordinaryideas.wordpress.com/2016/11/30/what-does-the-universal-prior-actually-look-like/
 2. Automated Red Teaming with GFlowNets: https://openreview.net/pdf?id=1mXufFuv95
+
+### The explainer model
+
+1. https://arxiv.org/pdf/2201.11903
+2. https://arxiv.org/pdf/2203.14465
+3. https://openreview.net/pdf?id=Ouj6p4ca60
