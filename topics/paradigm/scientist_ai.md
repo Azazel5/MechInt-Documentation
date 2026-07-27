@@ -168,6 +168,72 @@ There are many pieces to Scientist AI, and it is worth thinking about carefully.
 
 > Above all, let us keep in mind that a sufficiently intelligent enough system that is general and trained to maximize rewards via RL will for sure try to gain control of the reward mechanism itself, because that is the optimal and rational thing for it to do.
 
+## The 80000 hours podcast
+
+So, agentic Scientist AI is something Yoshua has been working on more recently it seems and part of the reason why this could work well is because there will be error bars on every estimate inferred by the system, as compared to the 100% confident estimate of right now. One could imagine that if the guarantees are below a certain threshold, we wouldn't allow the agentic version of Scientist AI to do that task.
+
+The uncertainty estimator doesn't need formal mathematical guarantees because there are alternative guarantees here. Either the predictor or the agentic version has an exponentially small probability of achieving a challenging or harmful goal. Anything that a randomly initialized would be able to do accidentally, that's the level of probabilit of harmful actions that such a Scientist AI could potentially take. So interesting. Clearly, a randomly initialized NN cannot do much; I would love to view the formalized math that actually backs these claims cause this is outstanding! 
+
+> We start with an uninitialized network obviously, but then the training objective pushes away bad behavior. 
+
+The interviewer is getting to what I want to be doing i.e. training a GPT-2 level Scientist AI, which is Yoshua's plan. We want a plan that produces an anytime answer. 
+
+Mythos guarding Mythos, it's not just that the guardrail could be scheming and collaborating with what it's supposed to be guarding against. It's also that companies are actively trying to automate AI research itself, which gets worse if Mythos is guarding Mythos doing research to make Mythos better. Allowing this kind of system to do AI research is a foolish thing that should be flagged by most regulators and policies right now! 
+
+Scientist AI is trained to explicitly reason in a very structured way about the statements that it makes. 
+
+The elk (eliciting latent knowledge) problem -> even if the AI may have internal beliefs about something, because it's trained to imitate the variables it sees in the data, when you query it, it will provide those very same semantics, and not necessarily what it actually believes.
+
+> Reinforcement learning is evil
+
+Training oracles through RL is flawed! 
+
+The Scientist AI is only coming up with theories related to the past data, not the future data. And this is exactly what science does! That is, try to theorize over past data. 
+
+- Consequence invariance = properties or truth values that remain unchanged (invariant) under specific transformations
+
+So there's two things going on. When a query is posed to the Scientist AI, it predicts the probability of the answer, given the world model, but also the guardrail system will output probabilities of harm, given the query. Here, I would be interested in knowing how Scientist AI denotes harm. What is harmful and what is not? 
+
+The guardrails will also handle *performative predictions* that could induce self-fulfilling prophecies (example, who will win the next election? Scientist AI picks and that person does end up winning because of the limelight and "having been selected by Scientist AI"). Agency through prediction. The guardrail decouples predictions from their effect. The NN is trained such that, in its input conditions, there's a statement that asks, "if we produced this prediction, what would be the harm?", so it is baked into the training procedure itself! By this, you can control the agency and risk in this way.
+
+Q: there's a potential that Oracle AIs are less capable than agentic AIs because they cannot run experiments and find things out. Is this true?
+
+A: two things. What are the best predictions and actions given the available information? If I were to do experiments in order to gain new knowledge, what are the actions that will increase my understanding while reducing uncertainty? This is how scientists think, exactly. You can quantify all this by information gain (the reverse of uncertainty). So, now you can build agentic systems on top of the Scientist AI that pursues experiments that maximize information gain while also adding the guardrails that is not harmful.
+
+## What we want to see?
+
+Honesty and getting rid of deceptive behavior. 
+
+1. Train really small models from scratch. We can compare the original open weight models with this at least
+2. Take an existing pre-trained model, a base model, fine-tune it using Scientist AI objective and data representation. We lose the mathematical guarantees, but Bengio thinks it would be fine anyways.
+
+We should be able to find tradeoffs. Deception benchmarks.
+
+What LawZero has already found is that most open weights models cheat on the benchmarks. As soon as you do fine-tuning on anything, their performance goes down. They probably have overfitted the benchmarks. 
+
+Bengio expects Scientist AI to be better thanks to better reasoning capabilities. Also, there's research evidence that shows that, when a model explores the causal structure of the world, it can generalize better OOD. Even if the distribution of the data changes on the surface, the underlying scientific explanations, the laws of physics, these things remain the same. And the Scientist AI will be encouraged to figure out the deeper truths.
+
+In the world of safety, this is especially important. The data it needs to do inference on will be vastly more different than what it will be trained on. 
+
+What's interesting is that scienstists are also trying to explain the causal connections of the world. Except there are invisible aspects to this, in a very ELK kind of way, things such as intentions, desires, they're all hidden from scientific theories, but they exist somewhere in the middle from input to output in the causal mechanism. Scientist AI will be able to think about things beyond mathematics and verified facts, beyond those domains because the hope is that it will have learnt the syntax and hidden knowledge required to represent the "truth" in the world, so even if it has to go OOD i.e. subjective or alternative domains it will perform well.
+
+It is not just trained to predict the next thing; it's also trained to be internally coherent. Meaning if it produces a new hypothesis, that needs to be consistent with all the other hypotheses or factual evidence that the world model holds.
+
+> Doing some additional research, I have found a paper that LawZero released 20 days ago about Scientist AI. Seems like something I definitely need to read, which will be next: [the mathematics of Scientist AI](https://lawzero.org/sites/default/files/publications/99/safety-honesty-disinterested-ai-predictor_4.pdf)
+
+> Set up an experiment: set it up such that clearly the AI isn't responding to our request to escape our control or do something bad it's not supposed to do. If the experiment can be translated into simple words and analogies, that'll be helpful. Invest in changing the game, where you try to make it understandable. Anthropic is trying to do this right now. 
+
+**The craziest thing that companies do is using untrusted AI to design the next round of untrusted AI**. They even know that they're being tested right now and that they fake alignment... We're on track to let AI handle AI R&D right now, which would plausibly lead to recursive self improvement.
+
+According to Yoshua, the biggest problem that most countries are making, especially when thinking about the policy questions that are relevant to AI is that AI is a *normal * technology, like ones we have seen in the past. Thinking along these lines, leaders would think AI is like the iphone, where the iphone 7 was much better than the iphone 3gs or whatever from 2010. AI will not be like that; in fact, even the AI companies would laugh at this silly misunderstanding because they're clearly aware that machine intelligence will probably overtake everything we know about everything and create a radically different world. That is, it's not like the iphone, like at all.
+
+The fact that politicians are seemingly unaware of the risks that AI poses (calling it a 10% chance is real) suggests that they don't take any of it seriously. That's all. Because, overwhelmingly, the scientific evidence and hypotheses by experts have shown to be true. Hence, they just don't think that it could happen. Disbelief. Probably some policitians laugh at this. They think of it like childish fantasies perhaps. Otherwise, even a 1% risk would have made huge changes by now in how AI gets done. If tomorrow, someone detected a 1% chance of aliens landing on Madagascar accurately, you better believe that world leaders would jump and react. But if they don't, that would mean that they:
+
+1. Don't believe the forecaster
+2. Think of it to be a joke
+3. Never hear about it in the first place i.e. lost in noise
+
+And the way AI has developed and how vocal the AI safety commmunity has been so far, it has to be the top two reasons. This is the movie "Don't Look Up" occuring in real time.
 
 ## Further Links
 
