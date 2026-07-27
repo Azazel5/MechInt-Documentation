@@ -259,7 +259,31 @@ The training pipeline for SAI follows this recipe:
 
 2. Predict - There's another component that works with SAI here called the explainer. As Bengio et al explain, SAI works in a very Daniel Kahneman, Thinking Fast and Slow, kind of way. When you ask SAI to predict an observation, it is direct in a very System 1 kind of way, which could be brittle OOD. So, there's the explainer system as well, which produces a small set of samples latent statements about the problem, which it Monte-Carlo averages over. This bit needs more explanation for sure, and I am looking forward to seeing how the explainer would work. In fact, when would SAI decide to use System 1 versus System 2? The explainer model is a "learned amortized proposal model".
 
-3. Deploy - the SAI scaffold makes predictions using the predictor or the explainer, but it decides whether or not the explanations and Bayesian probabilities indicate if the harm is low enough to warrant working in the particular query. 
+3. Deploy - the SAI scaffold makes predictions using the predictor or the explainer, but it decides whether or not the explanations and Bayesian probabilities indicate if the harm is low enough to warrant working in the particular query. Since the predictor samples from a pretty large set of possible hypotheses, in theory, there's the potential that it could select a hypothesis with the explanation that is larger than $A_{safe}$, a probability picked by stakeholders about what level of potential harm we're okay with.
+
+There are additional mathematical results that guarantee that the probability of picking a dangerous predictor is low. Since there is no connection between the predictor and the consequence of its actions i.e. consequence invariance, there's no reason for the training procedure to push the predictor towards predicting the harmful event H.
+
+Approxmating the Bayesian posterior over contextualized data incentivizes accuracy and honesty.
+
+1. Contextualization makes the problem well posed i.e. a unique solution exists and the solution changes when you change the question. So, unlike normal LLMs, SAI would give you the same answer for the same question
+
+2. Latent factual variables = gradients that favor explanations over imitation. Most of real-world data, coming out of the hard sciences, will be communication acts. So, to avoid creating another human imitator system that solely produces communication acts, the data transformation creates hard to miss latent variable statements. Instead of saying "X is Y", the data would say "Source A says X is Y" 
+
+3. Predictor's probability for uncertain statements converges to the Bayesian posterior 
+   
+4. Confident but miscalibrated predictions become vanishingly rare
+
+## Pushbacks
+
+Some statements don't have true/false values. While this is true, the data transformation gives it a true/false structure whether or not the contents of the claim is such as well. If I say "Metallica is the greatest band ever", the contents of that statement may not be true, but it is definitely true that "Subhanga Upadhyay said that Metallica is the greatest band ever" **because I did**. The model would be incentivized to learn from such data without learning from it i.e. it becomes aware that Metallica must be a good band without *actually thinking that it is*.
+
+Another argument is that, since most of the data will be those of communication acts, when SAI encounters situations without such factual syntax, would fail to generalize. 
+
+> But what about a really adept algorithm that is able to translate any piece of text, from anywhere, into the SAI format kind of like the Google search algorithm?
+
+But even without that idea, SAI will hold up thanks to the latent variable model. I am not too convinced by the logic here, so I would want to see it empirically. 
+
+SAI would be safe because of the multiple pieces working together in it. To produce a bad result, the predictor would need to produce multiple FN safety judgements, each consistent with others. **Why multiple? Why not just one?** Perhaps because one attempt would likely not be enough to beat the guardrail, maybe? 
 
 ## Further Links
 
