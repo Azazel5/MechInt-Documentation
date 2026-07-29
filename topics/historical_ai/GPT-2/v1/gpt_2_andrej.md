@@ -189,7 +189,3 @@ Thou hast rever ither for the point,
 An
 
 And remember this does not involve the RLHF/fine-tuning phase which this pretrained model does go through, so it would need to get trained again by defining a RL preference/reward model on another dataset first, and then the model would get fine-tuned using PPO with the reward model. 
-
-## Let's reproduce GPT-2 (124M)
-
-The positional embeddings were set from the sinusoidal distribution in the Attention is All You Need paper, but in the GPT-2 paper, they set it as a learnable parameter, which seems to work well. According to AK, the jagged nature of the curves (when you pull out random embedding vectors and plot them) shows that the network wasn't fully trained. 
