@@ -88,11 +88,14 @@ Dot product with Q and K. The head_size is determined from d_model/n_heads and t
 Until now, we just have the K and Q vectors, but we also need the V vector, which is matrix multiplied with the multiplication between Q and K.
 
 > Attention is just a communication mechanism. We're doing auto-regressive transformers so our structure is that token 1 points to itself only, 2 points to itself and is pointed to by 1, so on. But this could, in theory, be applied to any sort of graph.
+
 > Also, there is no notion of space; since attention only acts on vectors i.e. Q, K, and V, this is the reason why we need to add the positional encodings, because the tokens have no idea where they are. 
+
 > Examples across batches are completely independent.
+
 > If we're doing sentiment analysis, perhaps you'd want to have all the tokens talk to each other fully, so you could remove the bit where we are trilling. Another idea would be implementing the decoder block, where nodes from the future never talk to the past, as they'd give away the answer, opposite to what we're doing here, but we'd still need the trilling. In summary: Causal mask (tril) → autoregressive generation, GPT, predicting next token. No mask → encoder, classification, understanding tasks. Cross-attention, no mask → translation bridge between encoder and decoder
 
-It is called self-attention because the K, Q, and Vs are calculated from x, the token. But, in theory, you could generate K and Q from one source and the V from another, which is another kind of architecture which works. This is called **cross-attention**. 
+It is called self-attention because the K, Q, and Vs are calculated from x, the token. But, in theory, you could generate K and Q from one source and the V from another, which is another kind of architecture which works. This is called **cross-attention**, which the original AIAYN paper uses, so you can use it for inspiration. 
 
 In the original paper, they also divide by the square root of the head_size, which is important because scaling the attention is important. This is done in order to reduce the variance of the calculation matrix, meaning it gets softmaxxed. If the variance is not maintained, softmax converges to one-hot vectors, which is obviously a problem. So, the curve becomes a peak, such that most of the attention head block will have one node, one token, which holds the majority of the value. Training this beefed up models gives us...
 
@@ -108,7 +111,7 @@ generate() now crops to idx[:, -self.block_size:] before each forward pass — n
 
 Now, we'll move to multi-head attention. This improves the outputs a bit, reducing the training/validation losses to ~2.18 (down from ~2.31 with a single head, ~2.44 for plain bigram), matching the expected trend as heads are added. We have the MLP sublayer missing here, which will be a very simple feed forward network with ReLU. The feedforward layer is getting each individual token (since the MLP layer works independently, no token communication). So, this is where each token processes "its situation" some more.
 
-> At this point, loss converges a bit further (~2.23–2.26 through training, comparable/slightly better than the attention-only version), consistent with AK's point that FeedForward lets tokens "think" individually on what they gathered from attention.
+> At this point, loss decreases a bit further (~2.23–2.26 through training, comparable/slightly better than the attention-only version), consistent with AK's point that FeedForward lets tokens "think" individually on what they gathered from attention.
 
 So at this point we have implemented **one block** in the overall transformer architecture. We want to repeat this N times now. And now we come to another crucial idea which makes it all work. Here, there are problems with the optimizer running, which forces us to:
 
@@ -129,6 +132,7 @@ The MLP sublayer also needs to grow in size and then shrunk back down, so in thi
 
 step 4500: train loss 2.0103, val loss 2.0993
 1.986983299255371
+
 Here we goad loves atherasss dreyalf,
 A.
 
@@ -145,6 +149,20 @@ To shave
 
 To take this further, we'll add LayerNorms (similar to batch norm) to the skip connections too. You can take a batch norm implementation, and, instead of normalizing the columns, normalize the rows, and you have LayerNorm!! AK heavily edits the BatchNorm module he already had created and calls it LayerNorm, validate this, it is a big hand wavy. In the original paper, the add % norm bit was added after the transformer component, but nowadays, this is done before. The pre-norm formulation. There should also be a LayerNorm right at the end of the computation and before the final linear layer, so we can see that all of this is really iterative, and it is so wild that this is the architecture that made everything possible. 
 
+> Note: to clarify, imagine at this point our context length of 8. A sample sentece could be: "this is my wonderful sentence of size weight". Each of these tokens generates its own Q and K vectors (V will come later) through its own learned weight matrices. So, the one sentence has 8 x 3 = 24 vectors of size d_head, which is tyically d_model divided by number of heads (for Gemma, it is slightly different). They are calculated by normal projections; example, q = x @ $W_Q$
+
+> Another note: there's a difference between self attention and cross attention. If you generate V from the token itself, that is the self attention mechanistic versus if you get that vector from another source, that's cross attention
+
+### Gemma's unique behavior
+
+Standard attention: d_head = d_model / n_heads. The heads evenly partition d_model. No expansion — you're just reshaping the same d_model dimensions into n_heads chunks.
+
+Gemma 3 specifically: d_head is fixed at 256 regardless of n_heads or d_model. For Gemma 3 12B, d_model=3840 but n_heads=16 × d_head=256 = 4096. So the Q and O projections go 3840 → 4096 — a genuine expansion beyond d_model before splitting into heads, then back down to 3840 after. That's the unusual thing Gemma 3 does. **Let's call this attention head expansion**
+
+### LLaMa's unique behavior
+
+Llama's special thing is different — it's not expansion, it's GQA (Grouped Query Attention) where Q has 128 heads but K and V only have 8 heads, so K and V are smaller than Q. That is, 8 key-value heads to improve inference speed and reduce the size of key-value caches, and the 405B version specifically has 128 attention (query) heads against just 8 key/value heads — so each KV head is shared across 16 query heads. Llama doesn't expand beyond d_model in attention — it actually makes K and V narrower than you'd expect.
+
 Size of the LayerNorm also comes from d_model
 
 **We have created a decoder only transformer thanks to the masking we've done via Tril**
@@ -153,7 +171,7 @@ AK has also added a Dropout layer to the FFN and after the forward pass of the a
 
 > Read the 2014 Dropout paper: it's by Geoffrey Hinton, Ilya Sutskever, and Alex Krizhevsky -> edited by Yoshua Bengio
 
-All of these changes, namely, adding the MLP layer, projections, dropouts, and scaling all of this up reduces losses very much, and we get a validation loss of around. The triangular mask is what makes it a decoder-only, since we're only doing language modelling. The original paper does machine translation which needs an encoder and cross attention bit too, so we don't have that. The K and V comes from the encoder, but the Q's come from the decoder. Conditioning the decoding not only by the past tokens, but also the encoder bits. Some overfitting around step 4500, which is where we get our best validation loss: 1.4814. The output at the end is at least somewhat Shakespeare-like:
+All of these changes, namely, adding the MLP layer, projections, dropouts, and scaling all of this up reduces losses very much, and we get a somewhat generalized validation loss. The triangular mask is what makes it a decoder-only, since we're only doing language modelling. The original paper does machine translation which needs an encoder and cross attention bit too, so we don't have that. The K and V comes from the encoder, but the Q's come from the decoder. Conditioning the decoding not only by the past tokens, but also the encoder bits. Some overfitting around step 4500, which is where we get our best validation loss: 1.4814. The output at the end is at least somewhat Shakespeare-like:
 
 Here we gorre, son-life to be less in his brawl.
 

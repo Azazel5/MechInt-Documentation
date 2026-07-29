@@ -285,6 +285,53 @@ But even without that idea, SAI will hold up thanks to the latent variable model
 
 SAI would be safe because of the multiple pieces working together in it. To produce a bad result, the predictor would need to produce multiple FN safety judgements, each consistent with others. **Why multiple? Why not just one?** Perhaps because one attempt would likely not be enough to beat the guardrail, maybe? 
 
+The ELK challenge is precisely the fact that it is difficult to know what the model's actual, internal preferences are. Wouldn't it be a problem that we don't know what, even the Scientist AI's preferences would be? 
+
+> One of the ways SAI addresses this is forcing ELK by natural language explanations of all probabilistic outputs. It is trained to name the observed and latent variables in the outputs for interpretability. In fact, this is the whole reason the explainer component exists! These latent statements are fed into the training, so it must be used to create gradients, meaning there will be optimization pressure for the model to get it right!
+
+The team acknowledges that the ELK is probably not fully resolved. For a variety of reasons, the authors claim that ELK doesn't need to be fully resolved for the safety guarantees to be fully functional. **I'd need to explore more why this would be the case**.
+
+## How to create the probabilistic world model
+
+
+- Begin with a finite set of statements in natural language, math, or code. Each statement = desciribes a "property of the world". These are called statements or S. For each s in S, s could be True or False. 
+
+An example of a valid statement: “It rains in Montreal on January 1st, 2030”. This is a valid statement whose truth value is unknown because we don't know the future. 
+
+An example of an invalid statement: "hello" (just decalrative) or "red is the best color" or even "nice to meet you" (presumably)
+
+- An invalid statement can be converted into valid by adding the source of the claim i.e. "Subhanga said hello" or "Subhanga thinks red is the best color" or "Subhanga said nice to meet you to Yoshua". 
+
+> Amazingly, the team has already provided the epistemic contextualization process in the paper! Altough it seems limited, no true algorithm has been released, which means there's creative freedom for you to build upon the idea!
+
+- There's a problem here of cyclic definition. The way it has been defined, the Bayesian posterior over anything expressible in language. But the predictor's outputs is itself a definition of something expressible in the world. So how do we define this dog eating its own tail?  
+
+Def 3.2 — the fix: mutual induction in levels
+
+$S_{\theta}$: base valid statements (natural language, math, code) that have determinate truth values.
+
+$S_{k+1} = S_k \sqcup {\tilde{Q}_n(y|x).b : x,y \in L_k}$ — for every query expressible at level k, add one Boolean statement per bit of the deployed probability.
+
+L_{k+1} = Boolean closure of S_k under $\neg$, $\wedge$.
+Take unions. Both stay countable.
+
+Why bits -> statement-variables are Boolean by construction. To make a real number (a probability) a citizen of this world, you binarize it to precision B. "The system deployed 0.75" becomes a conjunction of B Boolean statement-variables. That's what lets do$(\tilde{Q}(y|x) = q)$ be a legitimate intervention on an ordinary variable later.
+
+Why level-alternation kills the circularity. Queries at level k+1 can only mention language from level k. So the definition is well-founded — no statement is defined in terms of itself — and the union closes the whole thing off. Standard trick, but it's the load-bearing move for the entire paper: without it, "predict the consequences of your own deployment" is not a well-posed conditional probability.
+
+> Personal opinion: as SAI gets trained, I need to make sure to train it in a way that's like: {metadata, text}, so the text has a chance to learn from the metadata. I will train it via causal masking i.e. the tril operation, auto-regressively.
+
+> The model should be able to learn the difference between: [SRC:bbc][CONF:0.78][TYPE:news][CITE:2][DOMAIN:politics]
+
+> "The prime minister announced..."
+
+versus:
+
+> [SRC:reddit][CONF:0.19][TYPE:opinion][CITE:0][DOMAIN:speculation]  
+
+
+> "The prime minister probably..."
+
 ## Further Links
 
 ### The Bayesian NN Based Probabilistic Inference 
