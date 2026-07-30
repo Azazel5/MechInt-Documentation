@@ -1,6 +1,8 @@
+import math
 import torch
 from torch.nn import nn
 from dataclasses import dataclass
+from torch.nn import functional as F
 
 @dataclass
 class GPTConfig:
@@ -24,9 +26,9 @@ class Block(nn.Module):
 
 class CausalSelfAttention:
     def __init__(self, config):
-        self.c_attn = nn.Linear(config.n_embd, config.n_embd * 3) # bias=True, Q, K, V matrices
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd) # bias=True
-        
+        self.c_attn = nn.Linear(config.n_embd, config.n_embd * 3) # Q, K, V matrices
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+
         # AK adds the bias through the register_buffer function
         self.n_head = config.n_head
         self.n_embd = config.n_embd
@@ -40,7 +42,18 @@ class CausalSelfAttention:
         
         qkv = self.c_attn
         q, k, v = qkv.split(self.n_embd, dim=2)
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        
+        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+        att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
+        att = F.softmax(att, dim=-1)
+        
+        y = att @ v
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
+        y = self.c_proj(y)
+        return y
 
 class MLP:
     def __init__(self, config):        

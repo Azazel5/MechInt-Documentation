@@ -106,3 +106,46 @@ That [3, 3] matrix is your Attention Grid! It tells you exactly how much Token 1
 Summary: We transpose so that the "Number of Heads" becomes a batch dimension, isolating each head completely. This places "Sequence 
 
 Length" and "Head Size" at the very end of the tensor, aligning them perfectly for PyTorch to multiply the tokens against each other to calculate attention.
+
+Now the next bit calculates the attention scores, masks the 0's to be negative infinity for the softmax to work well, and calculates the softmax.
+
+### Explanations here
+
+```
+att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+
+att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
+
+att = F.softmax(att, dim=-1)
+```
+
+1. The Negative Index in Transpose: k.transpose(-2, -1)
+
+> In Python and PyTorch, negative indices simply mean "count backward from the end.". So this switching of the k is necessary for the multiplication of q and k to work, and that's it. The multiplication works and we have a matrix that is [B, n_heads, T, T], the attention score matrix. The negative indices is just done as cleaner code. Theoretically, if you do multi-GPU training, you'd add yet another batch dimension, so instead of referring to the dimensions through static numbers, done using negative indices is cleaner code.
+
+2. What is masked_fill doing with self.bias[:, :, :T, :T]?
+
+> When the self.bias gets created, it was a square matrix of [1, 1, block_size, block_size], so when the data comes in, it may be smaller than block_size, the entire context window. By slicing the mask as [:, :, :T, :T], you are telling PyTorch: "Take the first T rows and the first T columns of the giant block_size mask." This ensures that the mask shrinks to exactly match the [T, T] shape of your current att tensor. Since self.bias is a lower-triangular matrix of 1s, the upper-right triangle consists of 0s. For every position in the att tensor where the corresponding mask value is 0 (i.e., token $i$ trying to look at future token $j$), masked_fill overwrites the attention score with -inf.
+
+3. Why dim=-1 in Softmax?
+
+> Softmax needs to know which direction to calculate those probabilities. It has to sum to 1.0 along a specific dimension. In attention, you want to answer the question: "For a given token, what percentage of its attention goes to itself, and what percentage goes to the tokens before it?". The tensor shape is [B, n_head, T, T].The second-to-last dimension (T) represents the Query tokens (who is doing the looking).The last dimension (T, or -1) represents the Key tokens (who is being looked at).By specifying dim=-1, you are telling PyTorch to apply Softmax across the last dimension (the Key tokens). This ensures that for every individual Query token (every row), the attention weights distributed across all past Key tokens (the columns) sum exactly to 1.0.Because the future tokens were set to -inf by the masked_fill, the Softmax of those future positions becomes exactly $0$ ($e^{-\infty} = 0$), guaranteeing that no information flows backward from the future.
+
+A misconception I had during all of this was that Q, K, and V are the same tensors because they're coming from the expanded d_model embedded input data. But this is **WRONG**. Think back to the linear layer that did this: self.c_attn = nn.Linear(n_embd, n_embd * 3). But inside that massive weight matrix, there are actually three completely separate sets of learned weights.The first third of the weights creates the Query ($Q$).The second third of the weights creates the Key ($K$).The final third of the weights creates the Value ($V$).Because the weights used to generate them are completely independent and learned separately via gradient descent, $Q$, $K$, and $V$ end up being entirely different numerical vectors, even though they originated from the exact same input token.
+
+Self-attention is essentially a "soft" database retrieval system. The network needs to separate the act of routing information from the actual information payload.
+
+The Query ($Q$): "What I am looking for." If the current token is the word "it" in the sentence "The dog chased the ball because it was fast", the Query vector for "it" might mathematically encode: "I am a pronoun looking for a singular noun."
+
+The Key ($K$): "What I am."The Key vector for the word "dog" encodes: "I am a singular noun acting as a subject."(The attention matrix is formed by $Q$ matching with $K$.)
+
+The Value ($V$): "What I actually mean."The Value vector is the actual payload. For the word "dog", the Value vector contains the deep semantic meaning of a furry, barking animal.
+
+If you forced the network to use the Key as the Value, you would permanently cripple its ability to learn. You would be forcing the network to use the exact same vector for matching as it does for the payload.Imagine if a library worked this way.Key: The Dewey Decimal sticker on the spine of a book (used to find it).Value: The actual text inside the book.If $K$ and $V$ were the same, the text of the book would just be the Dewey Decimal number. You would find exactly what you were looking for, but you would extract zero useful information from it.By keeping $V$ separate, the neural network is allowed to say: "I will design my Key to be a giant flashing beacon so the Query can find me easily. But once the Query finds me, I will pass along my Value, which contains the deep, complex semantic meaning of this token."
+
+Pytorch treates it as 3 separate tensors so it is actually learning during the forward pass. Calculating gradients, Backpropagating. Doing GD!! These are three different tensors coming from a linear layer
+
+
+
+Basically, K, Q, and V is doing Linear Regression with its own set of weights and biases i.e. kw, qw, vw, kb, qb, vb. So of course they're different and we want to reserve the final one for the actual output calculation!!! 
+
