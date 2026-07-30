@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+import torch
 from torch.nn import nn
+from dataclasses import dataclass
 
 @dataclass
 class GPTConfig:
@@ -11,8 +12,47 @@ class GPTConfig:
     
 class Block(nn.Module):
     def __init__(self, config):
-        pass
+        self.ln_1 = nn.LayerNorm(config.n_embd)
+        self.attn = CausalSelfAttention(config)
+        self.ln_2 = nn.LayerNorm(config.n_embd)
+        self.mlp = MLP(config)
         
+    def forward(self, x):
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
+class CausalSelfAttention:
+    def __init__(self, config):
+        self.c_attn = nn.Linear(config.n_embd, config.n_embd * 3) # bias=True, Q, K, V matrices
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd) # bias=True
+        
+        # AK adds the bias through the register_buffer function
+        self.n_head = config.n_head
+        self.n_embd = config.n_embd
+        
+        self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size)).view(1, 1, config.block_size, config.block_size))
+        
+    def forward(self, x):
+        B, T, C = x.size()  # Batch, seq_len, d_model
+        
+        # And now, we'll split things into the Q, K, V vectors and perform the attention calculations
+        
+        qkv = self.c_attn
+        q, k, v = qkv.split(self.n_embd, dim=2)
+
+class MLP:
+    def __init__(self, config):        
+        self.c_fc = nn.Linear(config.n_embd, config.n_embd * 4)
+        self.gelu = nn.GELU(approximate="tanh")
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+        
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = self.gelu(x)
+        x = self.c_proj(x)
+        
+        return x 
     
 class GPT(nn.Module):
     def __init__(self, config):

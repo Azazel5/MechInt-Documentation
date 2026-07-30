@@ -29,3 +29,19 @@ As we dig into the transformer blocks themselves, we see something interesting. 
 That's why we see something like this: 
 
 ![alt text](images/gpt-2_structure.png)
+
+Attention is a communication mechanistic, a pooling function, something that does a sort of weighted sum or aggregates. MLP works individually on each token, so it is a mapping function! Both of them working together is kind of like an application of MapReduce. The MLP sublayer just scales up the input (d_model) 4 times up, for some reason that is probably explained in the paper. The projection matrix takes it back down, as explained in the theory.
+
+GELU is like ReLU, except it is not exactly 0 at 0. There's a small bump. A slightly smoother ReLU. There are two versions of GeLU, the normal and approximate version, which exists for some reasons; although, there's no reason good reason today for this. A historical artifact.
+
+> Dead ReLU neuron problem. 0 gradient at the 0 point, which isn't preferred of course
+
+> Modern networks like LLaMa 3 has SwiGLU, which do similar things, but there's some research taste thing going on here!
+
+AK uses register_buffer with a bias which has nothing to do with the transformer layers' biases as we're seeing and expect, the y = mx + b kind of bias. It is the causal mask that is important to make the model auto-regressive, actually! As we can see within the register buffer bit, we're creating a square matrix (seq_len by seq_len) which is trilled such that a token cannot look into the future, in the triangular matrix fashion.
+
+It is confusingly called "bias" instead of the self attention mask; that is only historical baggage. And as for why it is added via register buffer instead of a normal tensor, it's because, in PyTorch, register_buffer is used for tensors that are stateful but not learnable.
+
+Because it is registered, when you call model.to('cuda'), PyTorch knows to move this mask to the GPU alongside your model weights.
+
+But, because it is a buffer and not an nn.Parameter, PyTorch knows not to calculate gradients for it. The optimizer will never try to "update" the 1s and 0s in the triangle.
