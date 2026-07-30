@@ -40,6 +40,7 @@ class CausalSelfAttention:
         
         qkv = self.c_attn
         q, k, v = qkv.split(self.n_embd, dim=2)
+        k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
 class MLP:
     def __init__(self, config):        
