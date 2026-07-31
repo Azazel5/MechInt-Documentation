@@ -145,7 +145,28 @@ If you forced the network to use the Key as the Value, you would permanently cri
 
 Pytorch treates it as 3 separate tensors so it is actually learning during the forward pass. Calculating gradients, Backpropagating. Doing GD!! These are three different tensors coming from a linear layer
 
-
-
 Basically, K, Q, and V is doing Linear Regression with its own set of weights and biases i.e. kw, qw, vw, kb, qb, vb. So of course they're different and we want to reserve the final one for the actual output calculation!!! 
 
+It took only around 80 lines of code to implement GPT-2, whereas the file from HuggingFace is around 2000 lines long, which would contain some extra stuff. AK made sure to name variables within the main model dictionary exactly to follow the structure that the transformers file does, so it becomes easy to load the model weights using this file instead. On top of that, AK will probably try to get better performance than just the vanilla GPT-2 model too. 
+
+When input goes into the transformer during inference (or training too), it goes in as [B, T], the token indices. Then the embedding layer comes into play, and it becomes [B, T, C], where C=d_model.
+
+## Some crucial details
+
+1. The independence/dependence of components in a transformer and benefits it provides
+
+> The attention heads within a transformer block operate independently. Meaning, they can read and write into the residual stream as they want/ look at the input tokens in whatever order they want. This fact also lends itself to a nice feature where the attnetion mechanism within one layer, in attention block, can be done in parallel, potentially sharded across GPUs. However, the layers themselves work in a sequential way. Meaning, layer 5 cannot look at what layer 10 did into some dimension in the residual stream, this bit is sequential.
+
+2. Softmax over attention heads and over the vocabulary
+
+> When the attention sublayer runs, in the forward pass, after creating q, k, and v vectors and performing the attention calculation, we end up with a square matrix of seq_len by seq_len. This has to be normalized by applying softmax on the last dimension (which, in a 2D matrix, is the row). So, each row sums to a 1. A single row represents a single token's total "attention budget." If Token 3 is deciding where to pull information from, its attention budget must equal 100% (or 1.0). And since we had already applied a causal mask before this process, or row 3, token 4 and 5 will be negative infinity and will be set to 0. So softmax will only apply the tokens 1, 2, and 3, which will sum to 1.
+
+And this is the bit that is multiplied by the v vector, which is already [B, n_heads, T, d_head], and we get [B, n_heads, T, d_head]. But we need [B, T, C], so we swap 1 and 2 giving us [B, T, n_head, d_head], which passes through another projection, the c_proj component, which is [C, C], and this matrix multiplication results in [B, T, C] through broadcasting.
+
+> When you pass the 3D tensor [B, T, C] into self.c_proj(y), PyTorch does not try to multiply a 3D block directly with a 2D matrix. Instead, nn.Linear is designed to apply the linear transformation only to the last dimension of the input tensor. The other dimensions are preserved. You can think of it as PyTorch dynamically flattening the first two dimensions, doing the math, and then un-flattening them: Implicit Flattening: PyTorch essentially views the [B, T, C] tensor as a massive list of individual token vectors. It temporarily treats it as shape [(B * T), C].
+
+![alt text](images/dimensions.png)
+
+You do not need to worry about axes 1 and 2 (B and T) multiplying against the C dimension. B and T are just organizational containers. The only math happening is the C dimension of each token vector being multiplied by the [C, C] weights inside c_proj.
+
+When this occurs over every transformer block and after the layer norm, the final lm_head, the cladssifier which is of the dimensions [d_model (C), vocab_size (T)], and the multiplication of this results in [B, T, vocab_size] because the two C's cancel out in the multiplication! At this point, we get our raw, unnormalized logits of the model, which need to get normalized again, meaning another softmax over the last dimension after getting rid of the middle dimension too.
