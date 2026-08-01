@@ -195,6 +195,22 @@ Output embeddings also work as word embeddings in the beginning! Tying them toge
 
 **The code, as it stands right now, doesn't share this wte tensor, and we want to do that!**. One other reason to do this is because it saves a lot of parameter space because the wte and lm_head matrices are pretty large i.e. [vocab_size, d_model], so in the case of GPT-2 that is 38 million parameters saved! 
 
+You need to initialize the weights using a normal distribution with 0 mean and some unit variance, picked to be 0.02 and 0.01 for the position vs token embeddings for some reason (*you can explore more in the paper or elsewhere why this happened!*), but AK uses 0.02 for both cause it really isn't a big difference.
+
+The only other module that needs initialization and has parameters is the LayerNorm, which has d_model dimensions as well.
+
+> Typically, if you use the [Xavier initialization](https://www.geeksforgeeks.org/deep-learning/xavier-initialization/), it would have been $\frac{1}{\sqrt{features}}$, but 0.02 is basically consistent with that. Our d_model are 768, and that value is basically 0.02-0.03 depending on that. 
+
+There's one more detail with initialization: if we start off with 0 in the residual stream, we know that we continuously add to it, as the forward pass of the block shows. The skip connections are additive. The variance of the activations grows. This is showcased by a simple and intuitive example by AK:
+
+![alt text](images/variance_increase.png)
+
+Always adding the numbers does this, so a scaling factor is applied to this residual stream by $\frac{1}{\sqrt{n}}$, which results in a variance of 1.0129. 2 is multiplied because there are two blocks or places which add to the residual pathway i.e. the attention and the MLP.
+
+> Always ask: what hardware do you have, what does it offer, and are you fully utilizing it?
+
+By default in PyTorch, when you create tensors, it uses float32 as the data type, meaning you should carefully set it to be much lower, especially if you'll use things like GCP credits or use actual money to train on Lambda or something like that! For DeepLearning, we can tolerate much lower precisions.  
+
 ## Practical Tips Section
 
 1. Create the y tensor along with the x tensor as you divide the data
@@ -203,3 +219,5 @@ Output embeddings also work as word embeddings in the beginning! Tying them toge
 4. .item() on a tensor will return the element in the case of a 1D tensor. PyTorch ships it into CPU memory with it, however
 5. 3e-4 is a pretty reasonable learning rate to set for most optimizations in the beginning debugging stages
 6. PyTorch's data_ptr function to validate if you're inadvertently setting two different tensors to the same memory location
+7. You can create flags within PyTorch tensors arbitrarily as done in the NANOGPT_SCALE_INIT flag existing inside the c_proj tensor, used for scaling down the variance of the residual stream additive accumulation. It gets applied wherever c_proj is used, so in the MLP layer as well as the CausalSelfAttentionLayer
+8. Remember that as of Python 3.7, you don't need to do from pdb import set_trace; set_trace()! You can just do -> breakpoint()

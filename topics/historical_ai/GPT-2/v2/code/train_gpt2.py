@@ -35,6 +35,7 @@ class CausalSelfAttention(nn.Module):
         
         self.c_attn = nn.Linear(config.n_embd, config.n_embd * 3) # Q, K, V matrices
         self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+        self.c_proj.NANOGPT_SCALE_INIT = 1.0
 
         # AK adds the bias through the register_buffer function
         self.n_head = config.n_head
@@ -69,6 +70,7 @@ class MLP(nn.Module):
         self.c_fc = nn.Linear(config.n_embd, config.n_embd * 4)
         self.gelu = nn.GELU(approximate="tanh")
         self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd)
+        self.c_proj.NANOGPT_SCALE_INIT = 1.0
         
     def forward(self, x):
         x = self.c_fc(x)
@@ -94,6 +96,8 @@ class GPT(nn.Module):
         
         # Weight sharing scheme
         self.transformer.wte.weight = self.lm_head.weight
+        
+        self.apply(self._init_weights)
     
     @classmethod
     def from_pretrained(cls, model_type):
@@ -161,11 +165,25 @@ class GPT(nn.Module):
         x = self.transformer.ln_f(x)
         logits = self.lm_head(x) # (B, T, vocab_size)
         loss = None
-        
+         
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
             
         return logits, loss
+    
+    def _init_weights(self, module):
+        std = 0.02
+        
+        if hasattr(module, "NANOGPT_SCALE_INIT"):
+            std *= (2 * self.config.n_layer) ** -0.5
+            
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=std)
+
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=std)
     
 class DataLoaderLite:
     def __init__(self, B, T):
@@ -240,7 +258,6 @@ train_loader = DataLoaderLite(B=4, T=32)
 
 torch.manual_seed(42)
 torch.mps.manual_seed(42)
-
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
 for i in range(50):
