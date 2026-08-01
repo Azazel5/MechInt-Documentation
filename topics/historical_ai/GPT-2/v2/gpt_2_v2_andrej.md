@@ -170,3 +170,36 @@ And this is the bit that is multiplied by the v vector, which is already [B, n_h
 You do not need to worry about axes 1 and 2 (B and T) multiplying against the C dimension. B and T are just organizational containers. The only math happening is the C dimension of each token vector being multiplied by the [C, C] weights inside c_proj.
 
 When this occurs over every transformer block and after the layer norm, the final lm_head, the cladssifier which is of the dimensions [d_model (C), vocab_size (T)], and the multiplication of this results in [B, T, vocab_size] because the two C's cancel out in the multiplication! At this point, we get our raw, unnormalized logits of the model, which need to get normalized again, meaning another softmax over the last dimension after getting rid of the middle dimension too.
+
+> At this point, we've defined the GPT-2 model and loaded the weights into it from the HF version. But moving forward, we want to initialize it through random weights and then actually train it!
+
+> **torch.compile makes things even faster!!**
+
+Every tokenizer has a compression ratio. In the case of GPT-2, it is around 3 to 1, meaning if you have 1000 characters, it is around 300 tokens. **Watch the AK tokenizer series too**.
+
+Filter for only ASCII characters, make sure there isn't any crazy unicodes, like emojis and all. Although most clean datasets should have already filtered for this!
+
+Once we get the training data, we want to tokenize it and arrange it such that the model's forward pass, which in the case of GPT-2 takes the token indices, will be arranged in a [B, T] structure, batches arranged by the sequence_length, where it is always lesser than T, the maximum seq_len.
+
+Recall that when you rearrange the tensors to have that structure, this is the training data where the training objective of the transformer makes it such that the label is the token to the right of the current token. So, AK likes to create a label array as well, which is of the same shape as the input tensors, but is right shifted!
+
+The training objective uses the cross_entropy loss function, so we're trying to get a sense of how different the GPT generated data is from the label. The function doesn't like the [B, T, vocab_size], so this needs to be flattened.
+
+At initialization, we want to ensure that the probability of any token is roughly the same and no token is overly representative in the training data. That is, the probability of occurrence of any token at initialization should be $\frac{1}{vocab \ size}$. The crossentropy loss is the negative log likelihood, so we should get the negative natural log of that value in the beginning.
+
+## Training GPT-2
+
+A subtle detail is the fact that the embedding matrix at the very beginning of the transformer and the linear layer at the very end have not only the same shape, but in fact are the same tensor, even in the memory location! This is a feature not a bug, done on purpose, as it has been estimated and shown that tokens sharing the same on both ends is useful as similar tokens, even if represented in different embedding forms (such as in different languages), should share a similar spot in the vector space. Tough to understand and you should read the paper, [which argues for this](https://arxiv.org/pdf/1608.05859). Semantics vs probabilities.
+
+Output embeddings also work as word embeddings in the beginning! Tying them together improves language models' performance.
+
+**The code, as it stands right now, doesn't share this wte tensor, and we want to do that!**. One other reason to do this is because it saves a lot of parameter space because the wte and lm_head matrices are pretty large i.e. [vocab_size, d_model], so in the case of GPT-2 that is 38 million parameters saved! 
+
+## Practical Tips Section
+
+1. Create the y tensor along with the x tensor as you divide the data
+2. Use AdamW which calculates momentum through "moments" and is a better version of the Adam optimizer according to AK
+3. Always zero the gradients when using the optimizer in a loop. At the beginning of every iteration!
+4. .item() on a tensor will return the element in the case of a 1D tensor. PyTorch ships it into CPU memory with it, however
+5. 3e-4 is a pretty reasonable learning rate to set for most optimizations in the beginning debugging stages
+6. PyTorch's data_ptr function to validate if you're inadvertently setting two different tensors to the same memory location
