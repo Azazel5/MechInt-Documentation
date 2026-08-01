@@ -30,7 +30,7 @@ The authors obtain the dictionary features and apply three sub-experiments to th
 
 All in all, a very nice profile for interpreting the tangled mess that LLM features usually are. Especially the third point, because that is literally a circuit, and dictionary features seem to allow for automated circuit detection (and then extraction). This is easy enough to do: 
 
-`
+```
     for l in range(layers):
         features = layers[l]
         feature_in_consideration = features[N]
@@ -41,7 +41,7 @@ All in all, a very nice profile for interpreting the tangled mess that LLM featu
             downstream_activations = model(prev_features)
             downstream_activations.sort()
             print(f"Difference in activations = {model(features)[feature_in_consideration] - downstream_activations[feature_in_consideration]}")
-`
+```
 
 This is the rough sketch of the Python code required to do this kind of ablation experiment, and it would show which features upstream were causally important to the feature in consideration, and doing so, would lead to a little circuit! From a circuit, drawing a graph (where strength of causal effect between dictionary features and successive residual stream layers) is a good idea to put in the BizzaroWorld paper! 
 

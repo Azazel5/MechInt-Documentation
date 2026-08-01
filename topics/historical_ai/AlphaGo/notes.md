@@ -70,16 +70,16 @@ Remove any one of these and the AlphaGo Zero approach breaks or becomes dramatic
 
 Most real domains violate at least one condition:
 
-Domain              Simulator?   Clear reward?   Bounded actions?
-──────────────────────────────────────────────────────────────────
-Go                  ✓ perfect    ✓ win/lose      ✓ 361 moves
-Chess               ✓ perfect    ✓ win/lose      ✓ ~35/position
-Protein folding     ✓ physics    ✓ energy min    ✓ angles
-Drug discovery      ✗ partial    ✗ noisy         ✗ vast
-Climate policy      ✗ none       ✗ contested     ✗ infinite
-Human relationships ✗ none       ✗ undefined     ✗ infinite
-Scientific discovery ✗ none      ✗ undefined     ✗ infinite
-Economics           ✗ partial    ✗ contested     ✗ infinite
+| Domain | Simulator? | Clear reward? | Bounded actions? |
+| :--- | :--- | :--- | :--- |
+| **Go** | ✓ perfect | ✓ win/lose | ✓ 361 moves |
+| **Chess** | ✓ perfect | ✓ win/lose | ✓ ~35/position |
+| **Protein folding** | ✓ physics | ✓ energy min | ✓ angles |
+| **Drug discovery** | ✗ partial | ✗ noisy | ✗ vast |
+| **Climate policy** | ✗ none | ✗ contested | ✗ infinite |
+| **Human relationships** | ✗ none | ✗ undefined | ✗ infinite |
+| **Scientific discovery** | ✗ none | ✗ undefined | ✗ infinite |
+| **Economics** | ✗ partial | ✗ contested | ✗ infinite |
 
 AlphaFold worked because physics gives you a simulator (energy functions) and a reward signal (minimum free energy). The protein folds to its lowest energy state — that's the objective, defined by nature itself.
 
@@ -89,9 +89,9 @@ The Deeper Problem: even where simulators exist, there's a subtler issue ->  Goo
 
 > When the measure becomes the target, it ceases to be a good measure.
 
-AlphaGo's reward — win the game — is perfectly aligned with what we actually want. Winning Go IS the goal. There's no gap between the proxy and the real objective.In most real domains that gap is enormous. Optimize for GDP and you get inequality. Optimize for clicks and you get outrage. Optimize for test scores and you get teaching to the test. The moment you define a reward function precisely enough for an RL agent to optimize, you've probably already distorted what you actually wanted.
+AlphaGo's reward — win the game — is perfectly aligned with what we actually want. Winning Go IS the goal. There's no gap between the proxy and the real objective. In most real domains that gap is enormous. Optimize for GDP and you get inequality. Optimize for clicks and you get outrage. Optimize for test scores and you get teaching to the test. The moment you define a reward function precisely enough for an RL agent to optimize, you've probably already distorted what you actually wanted.
 
-This is the alignment problem in its most fundamental form. AlphaGo Zero solved it by working in a domain where the proxy and the goal are identical. Most of the world isn't like that.
+This is the alignment problem in its most fundamental form, through specification gaming. To label every single outcome in the entire world's space is theoretically nearly impossible. AlphaGo Zero solved it by working in a domain where the proxy and the goal are identical. Most of the world isn't like that.
 
 ### What Has Been Applied
 
@@ -113,8 +113,7 @@ AlphaTensor is the one that stunned mathematicians — it discovered faster matr
 
 Three open frontiers where the AlphaGo Zero paradigm could explode but hasn't yet:
 
-- Building simulators for domains that don't have them
-World models — neural networks that learn to simulate environments from data rather than from explicit rules. 
+- Building simulators for domains that don't have them; world models i.e. neural networks that learn to simulate environments from data rather than from explicit rules. 
 
 MuZero was a step toward this. The frontier is: can you learn a good enough world model of, say, a biological cell to do AlphaGo Zero-style search in drug design?
 

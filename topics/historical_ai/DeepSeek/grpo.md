@@ -17,7 +17,7 @@ The value model is a full neural network, oftentimes the same size as the origin
 
 Corpus Construction: this was the version of the model that was trained on math problems, with the initial seed from OpenWebMath. 
 
-The crazy thing is that the DeepSeek 7B version trained in thsi way beat Minerva's 540B version, yet it is epistemically honest of us to compare whether the former is a specialized model or not, hence not makign this comparison fair. Yet, it seems it is comparable, as this description shows!
+The crazy thing is that the DeepSeek 7B version trained in thsi way beat Minerva's 540B version, yet it is epistemically honest of us to compare whether the former is a specialized model or not, hence not making this comparison fair. Yet, it seems it is comparable, as this description shows!
 
 ![alt text](images/minerva.png)
 

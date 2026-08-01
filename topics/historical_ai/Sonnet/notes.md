@@ -9,14 +9,14 @@ Sonnet 4.5 was introduced as the best model at coding in the world! And, indeed,
 And this includes non-coding but computer-use adjacent tasks. In addition, Sonnet is Anthropic's "most aligned model so far". We shall see what they mean by this precisely. 
 Some of the evaluations were done by third parties too, and there are significant improvements here. Exciting!
 
-Training data -> a mix of whatever could be used, including public/non-public, internal, or other user data. Anthropic's data scraping is very principled, following robots.txt
+Training data -> a mix of whatever could be used, including public/non-public, internal, or other user data. Anthropic's data scraping is very principled, following robots.txt (yeah I don't know about that. I think that was me being too naive back then. Anthropic has been as egregious in blatant 'I don't care' with the data scraping, as evidenced by the lawsuits they are fihgting - in fact 2 weeks ago, they settled with a group of authors for around 2 billion dollars, so... nah yeah nah)
 and only aiming non-paywalled websites. And then the model is post-trained and fine-tuned through RLHF/RLAIF.
 
 Hybrid reasoning model = when users can pick whether they want fast responses or extended thinking. Sonnet releases its CoT on extended thinking, DeepSeek style. These CoT is summarized by a smaller,
 lightweight model, but developers who need this at all times can also contact the Anthropic sales team for developer mode.
 
 According to Anthropic's Responsible Scaling Policy, Sonnet 4.5 meets ASL 3. It falls short of ASL-4 across all domains of interest. 
-The set of evaluations that Anthropic has used is better read with the ![Sonnet 4.0 and Opus System Card](https://www-cdn.anthropic.com/6d8a8055020700718b0c49369f60816ba2a7c285.pdf).
+The set of evaluations that Anthropic has used is better read with the [Sonnet 4.0 and Opus System Card](https://www-cdn.anthropic.com/6d8a8055020700718b0c49369f60816ba2a7c285.pdf).
 
 > An interesting benchmark you can potentially use in BizzaroWorld, maybe? http://openai.com/index/introducing-simpleqa/
 

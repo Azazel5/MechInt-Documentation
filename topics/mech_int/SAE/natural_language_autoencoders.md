@@ -17,7 +17,11 @@ Some case studies show that NLAs sometimes confabulate, and here we are: **the c
 
 ## Method
 
-The quality of reconstruction is determined by the complementary metric to FVU that was described in the [Gemma Scope](gemma_scope.md) paper. Here, they use FVE (Fraction of Variance Explained), where 1 = perfect reconstruction. Interestingly, there is nothing pushing the NLA explanation of the activations to be human interpretable, but this still occurs, just by a proper initialization of the AR and AV components + a KL divergence penalty.
+The quality of reconstruction is determined by the complementary metric to FVU that was described in the [Gemma Scope](gemma_scope.md) paper. Here, they use FVE (Fraction of Variance Explained), where 1 = perfect reconstruction. Interestingly, there is nothing pushing the NLA explanation of the activations to be human interpretable, but this still occurs, just by a proper initialization of the AR and AV components + a KL divergence penalty (I was not thinking through it properly here. The KL diverence penalty is **everything actually**. It makes sure the output activation text explanation's distribituion does not drift to another one).
+
+> The most efficient way to minimize reconstruction loss is not to speak English. It is to invent a highly compressed, alien language (steganography) where specific punctuation marks or bizarre strings of tokens perfectly encode raw mathematical coordinates. Left to its own devices, the AV would output absolute gibberish that perfectly reconstructs the vector, completely defeating the purpose of interpretability.
+
+We want to make sure the activations are **human interpretable**, so they must remain in English, which means we should make sure the model outputs come from the same statistical distribution, the English language, which is exactly what the KL divergence penalty does.
 
 The initialization needs to be done carefully, otherwise training is unstable. They actually fine-tune the two components on a totally different task (text summarization "proxy task"), so it's not so trivial. The AR updates are done through GD on regression loss. The AV update, when broken down, is seen to be exactly the same as maximizing the reward of a policy, so GRPO is used here to do that.
 
