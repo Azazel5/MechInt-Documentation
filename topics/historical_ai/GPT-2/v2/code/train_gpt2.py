@@ -1,5 +1,6 @@
 import os
 import math
+import time
 import torch
 import tiktoken
 import torch.nn as nn
@@ -54,11 +55,13 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
-        att = F.softmax(att, dim=-1)
+        # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+        # att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
+        # att = F.softmax(att, dim=-1)
         
-        y = att @ v
+        # y = att @ v
+        
+        y = F.scaled_dot_product_attention(q, k, v, is_causal=True)        
         y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.c_proj(y)
         return y
@@ -250,18 +253,19 @@ num_return_sequences = 5
 max_length = 30
     
 # model = GPT.from_pretrained("gpt2")
-model = GPT(GPTConfig())
+model = GPT(GPTConfig(vocab_size=50304))
 model.eval()
 model.to(device)
 model = torch.compile(model)
 
-train_loader = DataLoaderLite(B=4, T=32)
+train_loader = DataLoaderLite(B=16, T=1024)
 
 torch.manual_seed(42)
 torch.mps.manual_seed(42)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, betas=(0.9, 0.95), eps=1e-8)
 for i in range(50):
+    t0 = time.time()
     x, y = train_loader.next_batch()
     x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
@@ -270,8 +274,19 @@ for i in range(50):
         logits, loss = model(x, y)
     
     loss.backward()
+    
+    # People like to clip these to have a maximum norm. Sometimes you can get unlucky during optimization, a really high loss = high gradient and this could shock the optimization/the model.
+    # Always visualize the norm of the gradient or the gradients themselves
+    norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    
     optimizer.step()
-    print(f"Step: {i}, loss: {loss.item()}")
+    torch.mps.synchronize()
+    t1 = time.time()
+    dt = t1 - t0
+    tokens_processed = train_loader.B * train_loader.T
+    tokens_per_sec = tokens_processed / dt
+    
+    print(f"step {i:5d} | loss: {loss.item():.6f} | norm: {norm:.4f} | dt: {dt*1000:.2f}ms | tok/sec: {tokens_per_sec:.2f}")
 
 # while x.size(1) < max_length:
 #     with torch.no_grad():

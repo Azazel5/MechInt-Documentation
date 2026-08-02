@@ -240,11 +240,21 @@ torch.compile is pretty awesome!
 
 > Kernel Fusion -> how to make things faster within the many operations of a GPU
 
+> Use FlashAttention! It can be upto 7.6x faster! It works by never materializing the NxN attention matrix, N = seq_len, coming from the query and key vectors, so that never has to go in to the HBM. It relies on an online softmax trick from a previous paper! FlashAttention2 has been here since July 2023, additional gains! The online normalizer calculation for softmax comes out for NVIDIA in 2018! Use scaled_dot_product_attention
+
 ## GPU Architecture
 
 You should learn a bit about GPUs and how they work. Perhaps some kernel programming itself. A GPU chip has multiple parts. It is connected to HBM (High Bandwidth Memory), from where information travels often from the GPU to it (as a bridge, especially if you don't use torch.compile). But also, each GPU has some bits of memory sprinkled across it called the L2 cache. GPU chips also has the SM component (The GA100 has 128 SMs, the A100 has 108 of these streaming multiprocessors).
 
 SM (Streaming Multiprocessor) in a GPU acts as the main independent processing unit that schedules tasks, manages local memory, and runs thousands of parallel threads simultaneously. It contains smaller sub-components like CUDA cores, Tensor cores, and warp schedulers. It has L1 cache and registers for multiple floating point precisions. The L2 cache is different to the L1 cache. So, there is memory inside the chip but not a lot of memory, unlike the HBM. 
+
+Fix ugly numbers, in this example, the vocab_size element. Add some words to the vocab while realizing that this will increase the size of the inputs and it will be an increasingly high magnitide factor, as you're well aware.
+
+Think about it: most of the tokens in your vocab end up never getting used, especially in the context like TinyShakespeare. Which means, the probability space that these tokens will live in will be driven to 0. And that is exactly what happens if you increase the vocab_size like you did in the video: you would be introducing a bunch of new tokens that are never present in the data, meaning their frequency and probabilitiy will be driven to 0.
+
+## Taking inspiration from the GPT-3 paper
+
+In the appendix to this paper, there are more details about the model training and hyperparameter tuning in general. GPT-2 and GPT-3 architectures are very similar, just little enhancements like increased context windows. 
 
 ## Practical Tips Section
 
@@ -263,3 +273,5 @@ We are focused in detailed and efficient training at Scorpion Labs, so we want t
 
 1. Think about Tensor Cores and precisions. Use BF16 for unchanged exponents
 2. Use torch.compile to use kernel fusion
+3. FlashAttention
+4. One of AKs favorite optimizations = use nice numbers in all of your code i.e. powers of 2. Scan your code and look for ugly numbers.
