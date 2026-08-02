@@ -211,6 +211,41 @@ Always adding the numbers does this, so a scaling factor is applied to this resi
 
 By default in PyTorch, when you create tensors, it uses float32 as the data type, meaning you should carefully set it to be much lower, especially if you'll use things like GCP credits or use actual money to train on Lambda or something like that! For DeepLearning, we can tolerate much lower precisions.  
 
+For inference, you can use INT8 floating point precision too, **but not for training**! It has uniform spacing, so we map better mapping to normal distributions needed during training. We also have the GPU bandwidth, a very precious resource, one that deals with how fast the GPU can process the memory too. Usually deep learning is memory bound, so utilization of your hardware is low, which is the bottleneck. If we come down in precision, so we can access it faster too, another benefit of using lower precision formats.
+
+Most of the computation work occurs in the Linear layers, the matrix multiplications, the classifier layer at the top, going from d_model to the vocabulary size, even in the case of GPT-2. The best reference for tensor cores is the [A100 Architecture Docs](https://docs.nvidia.com/dgx/dgxa100-user-guide/dgxa100-user-guide.pdf) or [Tensor Cores](https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf).
+
+TF32 is more efficient because if you take a look at the paper, you see that the mantissa precision from FB32 gets cropped from 23 bits to 10 bits, a saving of around 43%, in every operation. This is what BF16 does as well, except it is 7 bits in the mantissa. The cost is lost information. AK likes TF32.
+
+When your CPU works, it just schedules work on GPUs and continues. Sometimes, when you place timing functions within the CPU script, it can run before the workload has finished on the GPU. So, we'd ideally want to time at the GPU level. 
+
+> tuda.cuda.synchronize(), this is the piece of code that will ensure the CPU waits for the GPU work to finish and then we can continue calling our CPU timing functions
+
+> Use the watch function in nvidia-smi i.e. watch -n 0.1 nvidia-smi
+
+By default, you want to max out the batch sizes, as large as you can get away fitting on your GPU. Keep these numbers "nice" i.e. powers of 2. 
+Tokens_per_sec is the objective that we really want to focus on! You may change your batch sizes a lot, so focusing on one measure like that is a good idea.
+
+> torch.set_floa32_matmul_precision() -> every place there is an NN.Linear, we expect the precision we set on torch!
+
+We're supposed to be getting roughly 8x throughput, which we shoudl see through tokens_per_second. We got 3x!!! The multiplies themselves are lower precision, but the tensors still are in FP32! BFloat16 for tensors! The exponent sets the range of the number in bits, which is the same even in BF16: less precision in the range though. We have the original range of numbers, but we just have less precision for it. In FP16, there is a reduced range, which is problematic, but BF16 doesn't!!!
+
+> The Ampere series of GPU has the functions discussed above!
+
+This is called mixed precision: [Automatic Mixed Precision](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html). 
+
+Here is the kind of thing where you can have massive savings: now that you need how many values you have in the transformer, you'll realize that sometimes you'll have a variety of dtypes inside some tensor, perhaps in the token embedding table but not the logits that result from the forward pass! Your detailed knowledge of the transformer will help you right here. This is actually mixed precision, and it could be a bug not a feature; you need to know this kind of stuff that's all. There are detailed reasons why autocast works like this. 
+
+torch.compile is pretty awesome!
+
+> Kernel Fusion -> how to make things faster within the many operations of a GPU
+
+## GPU Architecture
+
+You should learn a bit about GPUs and how they work. Perhaps some kernel programming itself. A GPU chip has multiple parts. It is connected to HBM (High Bandwidth Memory), from where information travels often from the GPU to it (as a bridge, especially if you don't use torch.compile). But also, each GPU has some bits of memory sprinkled across it called the L2 cache. GPU chips also has the SM component (The GA100 has 128 SMs, the A100 has 108 of these streaming multiprocessors).
+
+SM (Streaming Multiprocessor) in a GPU acts as the main independent processing unit that schedules tasks, manages local memory, and runs thousands of parallel threads simultaneously. It contains smaller sub-components like CUDA cores, Tensor cores, and warp schedulers. It has L1 cache and registers for multiple floating point precisions. The L2 cache is different to the L1 cache. So, there is memory inside the chip but not a lot of memory, unlike the HBM. 
+
 ## Practical Tips Section
 
 1. Create the y tensor along with the x tensor as you divide the data
@@ -221,3 +256,10 @@ By default in PyTorch, when you create tensors, it uses float32 as the data type
 6. PyTorch's data_ptr function to validate if you're inadvertently setting two different tensors to the same memory location
 7. You can create flags within PyTorch tensors arbitrarily as done in the NANOGPT_SCALE_INIT flag existing inside the c_proj tensor, used for scaling down the variance of the residual stream additive accumulation. It gets applied wherever c_proj is used, so in the MLP layer as well as the CausalSelfAttentionLayer
 8. Remember that as of Python 3.7, you don't need to do from pdb import set_trace; set_trace()! You can just do -> breakpoint()
+
+## To make the GPUs go BRRRR
+
+We are focused in detailed and efficient training at Scorpion Labs, so we want to know what we're getting from our GPUs, what to change for faster training, what the tradeoffs will be, all of it. 
+
+1. Think about Tensor Cores and precisions. Use BF16 for unchanged exponents
+2. Use torch.compile to use kernel fusion

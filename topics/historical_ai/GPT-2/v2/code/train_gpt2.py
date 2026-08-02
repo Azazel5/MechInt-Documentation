@@ -253,6 +253,7 @@ max_length = 30
 model = GPT(GPTConfig())
 model.eval()
 model.to(device)
+model = torch.compile(model)
 
 train_loader = DataLoaderLite(B=4, T=32)
 
@@ -264,7 +265,10 @@ for i in range(50):
     x, y = train_loader.next_batch()
     x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
-    logits, loss = model(x, y)
+    
+    with torch.autocast(device_type=device, dtype=torch.bfloat16):
+        logits, loss = model(x, y)
+    
     loss.backward()
     optimizer.step()
     print(f"Step: {i}, loss: {loss.item()}")
