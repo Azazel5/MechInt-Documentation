@@ -256,6 +256,30 @@ Think about it: most of the tokens in your vocab end up never getting used, espe
 
 In the appendix to this paper, there are more details about the model training and hyperparameter tuning in general. GPT-2 and GPT-3 architectures are very similar, just little enhancements like increased context windows. 
 
+Also, training on CUDA offers massive advantages to training on MPS, the Apple GPU. I measured the outputs tokens I get per second, which is what AK did as well, and the difference was **STARK**: 500 tokens per second for MP5, vs something like 150559 tokens per second for CUDA i.e. 300x faster! I have double checked the presence of bfloat16 on the Mac as well as the avilability of torch.compile and the FlashAttention speedup. Those modules are all available on this chip, it seems. The only exception is torch.compile, which has more advantages on CUDA rather than MPS according to this explanation:
+
+> "But set expectations correctly: on CUDA, torch.compile uses Triton to generate highly fused kernels close to hardware peak. On MPS, the Inductor backend targeting Metal is much newer and less mature — many ops still fall back to eager MPSGraph calls, so the speedup you get is much smaller than on CUDA (sometimes marginal). It's not wrong to keep it, just don't expect it to close much of the gap."
+
+### Why CUDA can be ~300x faster than an M-series chip
+
+A few compounding factors, not just one:
+
+1. Raw compute (the biggest factor). An A100 does ~312 TFLOPS bf16 (H100 ~989 TFLOPS) using dedicated tensor cores. Apple Silicon GPU cores are general-purpose shader cores doing matmul without a dedicated tensor-core equivalent at that scale — realistically low tens of TFLOPS even on a high-end M-series chip. That alone is a 15–30x gap in peak throughput before anything else is considered.
+
+2. Memory bandwidth. A100 HBM ~2TB/s (H100 ~3.35TB/s) vs. Apple unified memory, which tops out far lower depending on tier. Transformers are often memory-bandwidth-bound at these batch/seq sizes, so this compounds with the compute gap rather than being redundant with it.
+
+3. Kernel maturity. cuBLAS/cuDNN and CUDA FlashAttention kernels are years of hand-tuning for exactly this workload shape. The MPS backend's equivalents (MPSGraph-based) are comparatively unoptimized for transformer-shaped matmuls, and torch.compile's Metal codegen path is new enough that it recovers much less of that gap than Triton does on CUDA — so the two speedup techniques you're relying on (compile + SDPA [Scaled Dot Product Attention]) close far less distance on MPS than on CUDA.
+
+4. No fused optimizer. CUDA can use AdamW(fused=True), doing the whole parameter update in one kernel launch. MPS has no fused AdamW, so each of GPT-2's ~150 parameter tensors gets its own unfused update kernel launched separately — adds real per-step overhead that doesn't exist on the CUDA side.
+
+5. Power/thermal envelope. M-series GPU cores run at roughly 20–40W; A100/H100 run at 300–700W. A large chunk of the raw-compute gap is just physics — you can't out-architecture a 15-20x power budget difference.
+
+Combining these, something like a 15–30x hardware gap × 3–10x software/kernel-maturity inefficiency is a believable multiplier — that lands you in the 100–300x range, so your number isn't necessarily wrong.
+
+Your machine is an M5 Pro with 24GB total unified memory. The failed allocation (3.07 GiB) lines up almost exactly with what you'd expect for the cross_entropy computation at your settings: logits is (B*T, vocab_size) = (16384, 50304), and cross-entropy upcasts to fp32 internally for numerical stability — that's ~3.3GB for one tensor, on top of the model, gradients, AdamW's two fp32 moment buffers, and forward activations across 12 layers.
+
+The learning rate scheduler used in GOT-2 is the Cosine Decay Learning Scheduler with warmup.
+
 ## Practical Tips Section
 
 1. Create the y tensor along with the x tensor as you divide the data
@@ -266,6 +290,7 @@ In the appendix to this paper, there are more details about the model training a
 6. PyTorch's data_ptr function to validate if you're inadvertently setting two different tensors to the same memory location
 7. You can create flags within PyTorch tensors arbitrarily as done in the NANOGPT_SCALE_INIT flag existing inside the c_proj tensor, used for scaling down the variance of the residual stream additive accumulation. It gets applied wherever c_proj is used, so in the MLP layer as well as the CausalSelfAttentionLayer
 8. Remember that as of Python 3.7, you don't need to do from pdb import set_trace; set_trace()! You can just do -> breakpoint()
+9. Use a learning rate scheduler! 
 
 ## To make the GPUs go BRRRR
 
