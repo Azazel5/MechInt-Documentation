@@ -278,7 +278,17 @@ Combining these, something like a 15–30x hardware gap × 3–10x software/kern
 
 Your machine is an M5 Pro with 24GB total unified memory. The failed allocation (3.07 GiB) lines up almost exactly with what you'd expect for the cross_entropy computation at your settings: logits is (B*T, vocab_size) = (16384, 50304), and cross-entropy upcasts to fp32 internally for numerical stability — that's ~3.3GB for one tensor, on top of the model, gradients, AdamW's two fp32 moment buffers, and forward activations across 12 layers.
 
-The learning rate scheduler used in GOT-2 is the Cosine Decay Learning Scheduler with warmup.
+The learning rate scheduler used in GOT-2 is the Cosine Decay Learning Scheduler with warmup. To set it, you need some setup and it can be a bit gnarly, but you have to iterate over all the parameter groups within the optimizer (and you must do it within the training loop). PyTorch has learning rate schedulers, even the cosine decay, but AK likes implementing his own because it isn't a lot of code, and like all good engineers, he does what he can without making things inscrutible: control what you can.
+
+There's also batch size schedulers, but AK doesn't like this a lot because it changes the math of the training, plus this doesn't have that much effect on the entire training to be worthwhile. In the beginning of the training, the model is just learning which tokens to ignore and which to use more. Meaning, the gradients end up looking similar and highly correlated. Changing batch_sizes make even less sense then! It complicates things unnecessarily.
+
+AK makes a change by, instead of defining an optimizer through the PyTorch module, he makes his own helper function with the weight_decay, LR, and device. And finally, in the function, the optimizer is defined as usually, but the function is the because there are certain parameters that should be decayed and some should not. Example, 1D tensors and biases should not be weight decayed! Also things like LayerNorms. You want to decay the weights that participate in matrix multiplications and embeddings. 
+
+> "You're forcing the model to distribute work across more channels"
+
+Inspect.signature checks for methods available in an object, very useful when you're using systems with a lot of interaction of packages of different versions where you're unsure if something exists or not in older versions. Fused is something this leverages, which is CUDA only.
+
+The batch_size is correlated to all the other hyperparameters. But AK's problem (and yours too) is that the batch size that he needs to set on his training script is around 488 (batch size on GPT2 paper / seq_len), which is too large. We can use gradient accumulation for this! We simulate batch sizes with this idea. 
 
 ## Practical Tips Section
 
@@ -291,12 +301,21 @@ The learning rate scheduler used in GOT-2 is the Cosine Decay Learning Scheduler
 7. You can create flags within PyTorch tensors arbitrarily as done in the NANOGPT_SCALE_INIT flag existing inside the c_proj tensor, used for scaling down the variance of the residual stream additive accumulation. It gets applied wherever c_proj is used, so in the MLP layer as well as the CausalSelfAttentionLayer
 8. Remember that as of Python 3.7, you don't need to do from pdb import set_trace; set_trace()! You can just do -> breakpoint()
 9. Use a learning rate scheduler! 
+10. Gradient Accumulation is a great way to train large batch sizes in a smaller GPU! The best way to understand how to do this is to rewatch the section from AK's video, but it leverages the fact that loss.backward() just accumulates the gradients. The same reason why you need to do model.zero_grad()! But here, we use that fact because if we do a certain number of forward passes with the backward step while in one iteration of the training loop, you can accumulate the gradients for the other batches. But the problem is that the normalizer is lost i.e. a component in the math, a multiplier is lost, so the gradients accumulated won't be exact. But the fix to that is to just divide the loss by the multiplier.
+
+## DistributedDataParallel (DDP)
+
+And this is the heavy weaponry. When we want to connect to GPU nodes, they usually come in boxes, meaning, you can parallelize work across multiple GPUs. Example, we have 8 GPUs, so we'll launch 8 processes. Everything will look at the same. But they're going to be processing slightly different parts of the data. And we'll take an average of all the gradients. So no more launching the script by just python train_gpt2.py. We'll use torchrun. It will run 8 in parallel, and creates a bunch of environmental variables for effective communication between each. World size is the number of processes. They will have different ranks, running the exact same script. We want to run on different parts of data. 
+
+Local rank is something for multi-node settings, but here we're only using 1 node. You gotta learn how to do multi-node settings, that sounds awesome... Set device to encode ranks too, such as cuda:0 or cuda:1, etc. And when the master_process (which keeps changing) is the first one, it will also launch logic to do logging and checkpointing, etc.
+
 
 ## To make the GPUs go BRRRR
 
 We are focused in detailed and efficient training at Scorpion Labs, so we want to know what we're getting from our GPUs, what to change for faster training, what the tradeoffs will be, all of it. 
 
 1. Think about Tensor Cores and precisions. Use BF16 for unchanged exponents
-2. Use torch.compile to use kernel fusion
-3. FlashAttention
-4. One of AKs favorite optimizations = use nice numbers in all of your code i.e. powers of 2. Scan your code and look for ugly numbers.
+2. Use TF32 ----> torch.set_float32_matmul_precision("high")
+3. Use torch.compile to use kernel fusion
+4. FlashAttention
+5. One of AKs favorite optimizations = use nice numbers in all of your code i.e. powers of 2. Scan your code and look for ugly numbers.

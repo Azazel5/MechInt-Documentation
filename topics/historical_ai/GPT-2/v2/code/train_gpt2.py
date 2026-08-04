@@ -2,6 +2,7 @@ import os
 import math
 import time
 import torch
+import inspect
 import tiktoken
 import torch.nn as nn
 from dataclasses import dataclass
@@ -187,6 +188,30 @@ class GPT(nn.Module):
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=std)
+            
+    def configure_optimizers(self, weight_decay, learning_rate, device_type):
+        # start with all of the candidate parameters (that require grad)
+        param_dict = {pn: p for pn, p in self.named_parameters()}
+        param_dict = {pn: p for pn, p in param_dict.items() if p.requires_grad}
+        # create optim groups. Any parameters that is 2D will be weight decayed, otherwise no.
+        # i.e. all weight tensors in matmuls + embeddings decay, all biases and layernorms don't.
+        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2]
+        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
+        optim_groups = [
+            {'params': decay_params, 'weight_decay': weight_decay},
+            {'params': nodecay_params, 'weight_decay': 0.0}
+        ]
+        
+        num_decay_params = sum(p.numel() for p in decay_params)
+        num_nodecay_params = sum(p.numel() for p in nodecay_params)
+        print(f"num decayed parameter tensors: {len(decay_params)}, with {num_decay_params:,} parameters")
+        print(f"num non-decayed parameter tensors: {len(nodecay_params)}, with {num_nodecay_params:,} parameters")
+        
+        fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
+        use_fused = fused_available and device_type == "cuda"
+
+        optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate, betas=(0.9, 0.95), eps=1e-8, fused=use_fused)
+        return optimizer
     
 class DataLoaderLite:
     def __init__(self, B, T):
@@ -201,30 +226,8 @@ class DataLoaderLite:
         self.tokens = torch.tensor(tokens)
         print(f"Loaded {len(self.tokens)} tokens")
         print(f"1 epoch = {len(self.tokens) // (B * T)} tokens")
-        
         self.current_position = 0
-        #self.process_rank = process_rank
-        #self.num_processes = num_processes
-        #assert split in {'train', 'val'}
-
-        # get the shard filenames
-        #data_root = "edu_fineweb10B"
-        #shards = os.listdir(data_root)
-        #shards = [s for s in shards if split in s]
-        #shards = sorted(shards)
-        #shards = [os.path.join(data_root, s) for s in shards]
-        #self.shards = shards
-        #assert len(shards) > 0, f"no shards found for split {split}"
-        #if master_process:
-         #   print(f"found {len(shards)} shards for split {split}")
-        #self.reset()
-
-    # def reset(self):
-    #     # state, init at shard zero
-    #     self.current_shard = 0
-    #     self.tokens = load_tokens(self.shards[self.current_shard])
-    #     self.current_position = self.B * self.T * self.process_rank
-
+    
     def next_batch(self):
         B, T = self.B, self.T
         buf = self.tokens[self.current_position : self.current_position+B*T+1]
@@ -276,26 +279,41 @@ model.eval()
 model.to(device)
 model = torch.compile(model)
 
-train_loader = DataLoaderLite(B=16, T=1024)
+total_batch_size = 524288
+B = 16  # micro batch size
+T = 1024    # seq_len
+grad_accum_steps = total_batch_size // (B * T)
+
+train_loader = DataLoaderLite(B=B, T=T)
+torch.set_float32_matmul_precision("high")
 
 torch.manual_seed(42)
 torch.mps.manual_seed(42)
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, betas=(0.9, 0.95), eps=1e-8)
-for i in range(50):
+optimizer = model.configure_optimizers(weight_decay=0.1, learning_rate=6e-4, device_type=device)
+
+for step in range(50):
     t0 = time.time()
-    x, y = train_loader.next_batch()
-    x, y = x.to(device), y.to(device)
     optimizer.zero_grad()
     
-    with torch.autocast(device_type=device, dtype=torch.bfloat16):
-        logits, loss = model(x, y)
+    for micro_step in range(grad_accum_steps):
+        x, y = train_loader.next_batch()
+        x, y = x.to(device), y.to(device)
     
-    loss.backward()
+    
+        with torch.autocast(device_type=device, dtype=torch.bfloat16):
+            logits, loss = model(x, y)
+        
+        loss /= grad_accum_steps
+        loss.backward()
     
     # People like to clip these to have a maximum norm. Sometimes you can get unlucky during optimization, a really high loss = high gradient and this could shock the optimization/the model.
     # Always visualize the norm of the gradient or the gradients themselves
     norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    lr = get_lr(step)
+    
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
     
     optimizer.step()
     torch.mps.synchronize()
@@ -304,19 +322,43 @@ for i in range(50):
     tokens_processed = train_loader.B * train_loader.T
     tokens_per_sec = tokens_processed / dt
     
-    print(f"step {i:5d} | loss: {loss.item():.6f} | norm: {norm:.4f} | dt: {dt*1000:.2f}ms | tok/sec: {tokens_per_sec:.2f}")
+    print(f"step {step:5d} | loss: {loss.item():.6f} | lr {lr:.4e} | norm: {norm:.4f} | dt: {dt*1000:.2f}ms | tok/sec: {tokens_per_sec:.2f}")
+    
+# Multi-GPU version
 
-# while x.size(1) < max_length:
-#     with torch.no_grad():
-#         logits = model(x)
-#         logits = logits[:, -1, :]
-#         probs = F.softmax(logits, dim=-1)
-#         topk_probs, topk_indices = torch.topk(probs, 50, dim=-1)
-#         ix = torch.multinomial(topk_probs, 1)
-#         xcol = torch.gather(topk_indices, -1, ix)
-#         x = torch.cat((x, xcol), dim=1)
-        
-# for i in range(num_return_sequences):
-#     tokens = x[i, :max_length].tolist()
-#     decoded = enc.decode(tokens)
-#     print(">", decoded)
+# -----------------------------------------------------------------------------
+# simple launch:
+# python train_gpt2.py
+# DDP launch for e.g. 8 GPUs:
+# torchrun --standalone --nproc_per_node=8 train_gpt2.py
+
+# run the training loop
+from torch.distributed import init_process_group, destroy_process_group
+from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.distributed as dist
+
+# set up DDP (distributed data parallel).
+# torchrun command sets the env variables RANK, LOCAL_RANK, and WORLD_SIZE
+ddp = int(os.environ.get('RANK', -1)) != -1 # is this a ddp run?
+if ddp:
+    # use of DDP atm demands CUDA, we set the device appropriately according to rank
+    assert torch.cuda.is_available(), "for now i think we need CUDA for DDP"
+    init_process_group(backend='nccl')
+    ddp_rank = int(os.environ['RANK'])
+    ddp_local_rank = int(os.environ['LOCAL_RANK'])
+    ddp_world_size = int(os.environ['WORLD_SIZE'])
+    device = f'cuda:{ddp_local_rank}'
+    torch.cuda.set_device(device)
+    master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
+else:
+    # vanilla, non-DDP run
+    ddp_rank = 0
+    ddp_local_rank = 0
+    ddp_world_size = 1
+    master_process = True
+    # attempt to autodetect device
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        device = "mps"
